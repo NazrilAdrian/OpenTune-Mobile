@@ -43,6 +43,16 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => Navigator.maybePop(context),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Color(0xFF303030),
+                  ),
+                ),
+              ),
               // ── Header Card ─────────────────────────────────────────────────
               Container(
                 width: double.infinity,

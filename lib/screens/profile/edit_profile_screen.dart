@@ -74,8 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: Color(0xFFE5E7EB)),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -266,8 +265,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(height: 8),
                             TextField(
-                              controller: TextEditingController(
-                                  text: 'Nazril Adrian'),
+                              controller:
+                                  TextEditingController(text: 'Nazril Adrian'),
                               decoration: InputDecoration(
                                 hintText: 'Enter your username',
                                 hintStyle: const TextStyle(
@@ -278,8 +277,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 fillColor: Colors.white,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide:
-                                      const BorderSide(color: Color(0xFFE5E7EB)),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -315,8 +314,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 fillColor: Colors.white,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide:
-                                      const BorderSide(color: Color(0xFFE5E7EB)),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE5E7EB)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -393,7 +392,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFEE2E2), width: 1.5),
+                  border:
+                      Border.all(color: const Color(0xFFFEE2E2), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
