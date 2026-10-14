@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../profile/profile_screen.dart';
 import '../../navigation/custom_navbar.dart';
 import 'register_screen.dart';
+import '../admin/admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -375,8 +376,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
+                          child: OutlinedButton.icon(                          
+                              onPressed: () {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const AdminScreen(),
+                                  ),
+                                );
+                              },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(
                                 color: Color(0xFFE5E7EB),
