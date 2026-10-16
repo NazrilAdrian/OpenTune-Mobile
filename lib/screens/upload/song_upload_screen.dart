@@ -119,7 +119,8 @@ class _SongUploadScreenState extends State<SongUploadScreen> {
                     child: Column(
                       children: [
                         const SongCover(
-                          coverImage: 'assets/images/covers/setsunarensa_cover.jpg',
+                          coverImage:
+                              'assets/images/covers/setsunarensa_cover.jpg',
                           width: 155,
                           height: 155,
                           radius: 9,

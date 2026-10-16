@@ -139,7 +139,8 @@ class HomeScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: OpenTuneColors.text,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -150,7 +151,8 @@ class HomeScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: OpenTuneColors.muted,
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],

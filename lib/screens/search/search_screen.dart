@@ -21,9 +21,7 @@ class SearchScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-
             const SizedBox(height: 7),
-
             const Text(
               'Find your favorite songs and albums.',
               style: TextStyle(
@@ -31,9 +29,7 @@ class SearchScreen extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-
             const SizedBox(height: 21),
-
             TextField(
               showCursor: true,
               enableInteractiveSelection: true,
