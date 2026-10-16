@@ -22,7 +22,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   int currentIndex = 0;
 
   // ============================================================
-  // HALAMAN UTAMA
+  // MAIN SCREENS
   // ============================================================
 
   List<Widget> get _screens => [
@@ -33,7 +33,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
       ];
 
   // ============================================================
-  // NAVIGASI HALAMAN
+  // NAVIGATION
   // ============================================================
 
   void _openProfile() {
@@ -61,7 +61,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   }
 
   // ============================================================
-  // MENU UPLOAD
+  // UPLOAD MENU
   // ============================================================
 
   void _showUploadMenu() {
@@ -82,7 +82,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Handle bottom sheet
+                // Bottom sheet handle
                 Center(
                   child: Container(
                     width: 38,
@@ -96,7 +96,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
 
                 const SizedBox(height: 22),
 
-                // Judul dan deskripsi dengan jarak kiri
+                // Title and description
                 const Padding(
                   padding: EdgeInsets.only(left: 8),
                   child: Column(
@@ -113,7 +113,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
                       ),
                       SizedBox(height: 5),
                       Text(
-                        'Pilih konten yang ingin kamu tambahkan.',
+                        'Choose the content you want to add.',
                         style: TextStyle(
                           color: OpenTuneColors.muted,
                           fontSize: 12,
@@ -127,11 +127,11 @@ class _CustomNavbarState extends State<CustomNavbar> {
 
                 const SizedBox(height: 19),
 
-                // Upload Lagu
+                // Upload Song
                 _UploadMenuOption(
                   icon: Icons.music_note_rounded,
-                  title: 'Upload Lagu',
-                  subtitle: 'Tambahkan satu lagu',
+                  title: 'Upload Song',
+                  subtitle: 'Add a single song',
                   onTap: () {
                     Navigator.pop(sheetContext);
                     _openSongUpload();
@@ -144,7 +144,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
                 _UploadMenuOption(
                   icon: Icons.album_rounded,
                   title: 'Upload Album',
-                  subtitle: 'Tambahkan album beserta lagunya',
+                  subtitle: 'Add an album with its songs',
                   onTap: () {
                     Navigator.pop(sheetContext);
                     _openAlbumUpload();
@@ -159,7 +159,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   }
 
   // ============================================================
-  // ITEM NAVBAR BIASA
+  // REGULAR NAVIGATION ITEM
   // ============================================================
 
   Widget _navItem({
@@ -193,7 +193,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   }
 
   // ============================================================
-  // TOMBOL UPLOAD
+  // UPLOAD BUTTON
   // ============================================================
 
   Widget _buildUploadButton() {
@@ -249,7 +249,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   }
 
   // ============================================================
-  // ITEM NAVBAR: IKON DAN LABEL
+  // NAVIGATION ITEM: ICON AND LABEL
   // ============================================================
 
   Widget _buildRegularNavItem({
@@ -275,9 +275,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
               ),
             ),
           ),
-
           const SizedBox(height: 3),
-
           Text(
             label,
             maxLines: 1,
@@ -310,7 +308,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
             // Mini player
             const MiniPlayerBar(),
 
-            // Garis atas navbar
+            // Top border of the navigation bar
             SizedBox(
               height: 1,
               child: CustomPaint(
@@ -319,7 +317,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
               ),
             ),
 
-            // Area navbar
+            // Navigation area
             SizedBox(
               height: 62,
               child: Stack(
@@ -351,7 +349,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
                           },
                         ),
 
-                        // Ruang untuk tombol Upload
+                        // Space for the Upload button
                         const Expanded(
                           child: SizedBox.shrink(),
                         ),
@@ -379,7 +377,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
                     ),
                   ),
 
-                  // Tombol Upload melayang di tengah
+                  // Floating Upload button in the center
                   Positioned(
                     top: -8,
                     left: 0,
@@ -408,7 +406,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
   }
 
   // ============================================================
-  // BUILD UTAMA
+  // MAIN BUILD
   // ============================================================
 
   @override
@@ -425,7 +423,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
 }
 
 // ================================================================
-// KOMPONEN PILIHAN MENU UPLOAD
+// UPLOAD MENU OPTION
 // ================================================================
 
 class _UploadMenuOption extends StatelessWidget {
@@ -453,7 +451,7 @@ class _UploadMenuOption extends StatelessWidget {
           padding: const EdgeInsets.all(13),
           child: Row(
             children: [
-              // Ikon menu
+              // Menu icon
               Container(
                 width: 43,
                 height: 43,
@@ -470,7 +468,7 @@ class _UploadMenuOption extends StatelessWidget {
 
               const SizedBox(width: 13),
 
-              // Judul dan deskripsi
+              // Title and description
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,9 +482,7 @@ class _UploadMenuOption extends StatelessWidget {
                         fontSize: 13,
                       ),
                     ),
-
                     const SizedBox(height: 4),
-
                     Text(
                       subtitle,
                       style: const TextStyle(
@@ -513,7 +509,7 @@ class _UploadMenuOption extends StatelessWidget {
 }
 
 // ================================================================
-// PAINTER GARIS ATAS NAVBAR
+// NAVBAR TOP BORDER PAINTER
 // ================================================================
 
 class _NavbarTopBorderPainter extends CustomPainter {
