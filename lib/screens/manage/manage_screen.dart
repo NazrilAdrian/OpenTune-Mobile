@@ -16,17 +16,17 @@ class _ManageScreenState extends State<ManageScreen> {
     TrackData(
       title: 'Setsunarensa',
       artist: 'Radwimps',
-      seed: 'setsunarensa',
+      coverImage: 'assets/images/covers/setsunarensa_cover.jpg',
     ),
     TrackData(
       title: 'Dramaturgy',
       artist: 'Eve',
-      seed: 'dramaturgy',
+      coverImage: 'assets/images/covers/dramaturgy_cover.jpg',
     ),
     TrackData(
       title: 'Saikai',
       artist: 'Vaundy',
-      seed: 'saikai',
+      coverImage: 'assets/images/covers/saikai_cover.jpg',
     ),
   ];
 
@@ -34,12 +34,12 @@ class _ManageScreenState extends State<ManageScreen> {
     TrackData(
       title: 'Under Blue',
       artist: 'Eve',
-      seed: 'under-blue',
+      coverImage: 'assets/images/covers/under_blue_cover.jpg',
     ),
     TrackData(
-      title: 'RADWIMPS 4',
-      artist: 'Radwimps',
-      seed: 'radwimps-4',
+      title: 'Smile',
+      artist: 'Eve',
+      coverImage: 'assets/images/covers/smile_cover.jpg',
     ),
   ];
 
@@ -73,7 +73,8 @@ class _ManageScreenState extends State<ManageScreen> {
                     style: TextStyle(
                       color: OpenTuneColors.text,
                       fontSize: 26,
-                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
 
@@ -125,7 +126,7 @@ class _ManageScreenState extends State<ManageScreen> {
                     child: Row(
                       children: [
                         SongCover(
-                          seed: item.seed,
+                          coverImage: item.coverImage,
                           width: 58,
                           height: 58,
                           radius: 6,
@@ -231,7 +232,7 @@ class _ManageScreenState extends State<ManageScreen> {
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 4,
                     ),
                   ]

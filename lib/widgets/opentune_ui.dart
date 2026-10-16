@@ -14,37 +14,35 @@ class OpenTuneColors {
 class TrackData {
   final String title;
   final String artist;
-  final String seed;
+  final String coverImage;
 
   const TrackData({
     required this.title,
     required this.artist,
-    required this.seed,
+    required this.coverImage,
   });
 }
-
-// Empat lagu per section, menyesuaikan contoh website.
 
 const recommendationTracks = [
   TrackData(
     title: 'Setsunarensa',
     artist: 'Radwimps',
-    seed: 'setsunarensa',
+    coverImage: 'assets/images/covers/setsunarensa_cover.jpg',
   ),
   TrackData(
     title: 'Dramaturgy',
     artist: 'Eve',
-    seed: 'dramaturgy',
+    coverImage: 'assets/images/covers/dramaturgy_cover.jpg',
   ),
   TrackData(
     title: 'Starlight Parade',
     artist: 'Sekai No Owari',
-    seed: 'starlight-parade',
+    coverImage: 'assets/images/covers/starlight_parade_cover.jpg',
   ),
   TrackData(
     title: 'ODO',
     artist: 'Ado',
-    seed: 'odo-ado',
+    coverImage: 'assets/images/covers/odo_cover.jpg',
   ),
 ];
 
@@ -52,22 +50,22 @@ const uploadedTracks = [
   TrackData(
     title: 'Saikai',
     artist: 'Vaundy',
-    seed: 'saikai',
+    coverImage: 'assets/images/covers/saikai_cover.jpg',
   ),
   TrackData(
     title: 'Fly Away',
     artist: 'Vaundy',
-    seed: 'fly-away',
+    coverImage: 'assets/images/covers/fly_away_cover.jpg',
   ),
   TrackData(
     title: 'Tokyo Flash',
     artist: 'Vaundy',
-    seed: 'tokyo-flash',
+    coverImage: 'assets/images/covers/tokyo_flash_cover.jpg',
   ),
   TrackData(
     title: 'Let Me Hear',
     artist: 'Fear and Loathing in Las Vegas',
-    seed: 'let-me-hear',
+    coverImage: 'assets/images/covers/let_me_hear_cover.jpg',
   ),
 ];
 
@@ -75,95 +73,27 @@ const monthlyTracks = [
   TrackData(
     title: 'Thriller',
     artist: 'Michael Jackson',
-    seed: 'thriller',
+    coverImage: 'assets/images/covers/thriller_cover.jpg',
   ),
   TrackData(
-    title: 'Greatest Hits',
+    title: 'Under Pressure',
     artist: 'Queen',
-    seed: 'queen-greatest-hits',
+    coverImage: 'assets/images/covers/under_pressure_cover.jpg',
   ),
   TrackData(
-    title: 'After Hours',
-    artist: 'The Weeknd',
-    seed: 'after-hours',
+    title: 'Like Him',
+    artist: 'Tyler The Creator',
+    coverImage: 'assets/images/covers/like_him_cover.jpg',
   ),
   TrackData(
-    title: 'Island in the Sun',
-    artist: 'Weezer',
-    seed: 'island-in-the-sun',
+    title: 'Paranoid Android',
+    artist: 'Radiohead',
+    coverImage: 'assets/images/covers/paranoid_android_cover.jpg',
   ),
 ];
 
-const searchSongTracks = [
-  TrackData(
-    title: 'Dramaturgy',
-    artist: 'Eve',
-    seed: 'dramaturgy',
-  ),
-  TrackData(
-    title: 'Kaikai Kitan',
-    artist: 'Eve',
-    seed: 'kaikai-kitan',
-  ),
-  TrackData(
-    title: 'Bokurano',
-    artist: 'Eve',
-    seed: 'bokurano',
-  ),
-  TrackData(
-    title: 'Fight Song',
-    artist: 'Eve',
-    seed: 'fight-song',
-  ),
-  TrackData(
-    title: 'Last Dance',
-    artist: 'Eve',
-    seed: 'last-dance',
-  ),
-  TrackData(
-    title: 'Avant',
-    artist: 'Eve',
-    seed: 'avant',
-  ),
-];
-
-const searchAlbumTracks = [
-  TrackData(
-    title: 'Bunka',
-    artist: 'Eve',
-    seed: 'bunka-album',
-  ),
-  TrackData(
-    title: 'Under Blue',
-    artist: 'Eve',
-    seed: 'under-blue',
-  ),
-  TrackData(
-    title: 'Kaizin',
-    artist: 'Eve',
-    seed: 'kaizin',
-  ),
-  TrackData(
-    title: 'Smile',
-    artist: 'Eve',
-    seed: 'smile-album',
-  ),
-  TrackData(
-    title: 'Otogi',
-    artist: 'Eve',
-    seed: 'otogi',
-  ),
-  TrackData(
-    title: 'Kaikai Kitan',
-    artist: 'Eve',
-    seed: 'kaikai-kitan-album',
-  ),
-];
-
-/// Cover placeholder untuk wireframe.
-/// Gambar jaringan hanya contoh visual; tidak terhubung ke backend.
 class SongCover extends StatelessWidget {
-  final String seed;
+  final String coverImage;
   final double width;
   final double height;
   final double radius;
@@ -171,7 +101,7 @@ class SongCover extends StatelessWidget {
 
   const SongCover({
     super.key,
-    required this.seed,
+    required this.coverImage,
     this.width = 110,
     this.height = 95,
     this.radius = 8,
@@ -207,13 +137,9 @@ class SongCover extends StatelessWidget {
       height: height,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
-        child: Image.network(
-          'https://picsum.photos/seed/$seed/480/400',
+        child: Image.asset(
+          coverImage,
           fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return _placeholder();
-          },
           errorBuilder: (context, error, stackTrace) {
             return _placeholder();
           },

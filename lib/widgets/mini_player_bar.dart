@@ -22,7 +22,7 @@ class MiniPlayerBar extends StatelessWidget {
       child: Material(
         color: Colors.white,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.06),
+        shadowColor: Colors.black.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(11),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -35,7 +35,7 @@ class MiniPlayerBar extends StatelessWidget {
                 child: Row(
                   children: [
                     const SongCover(
-                      seed: 'setsunarensa',
+                      coverImage: 'assets/images/covers/setsunarensa_cover.jpg',
                       width: 43,
                       height: 43,
                       radius: 6,

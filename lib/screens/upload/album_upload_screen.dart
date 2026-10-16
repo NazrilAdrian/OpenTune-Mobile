@@ -119,7 +119,7 @@ class _AlbumUploadScreenState extends State<AlbumUploadScreen> {
                     child: Column(
                       children: [
                         const SongCover(
-                          seed: 'under-blue',
+                          coverImage: 'assets/images/covers/under-blue_cover.jpg',
                           width: 155,
                           height: 155,
                           radius: 9,
@@ -192,7 +192,7 @@ class _AlbumUploadScreenState extends State<AlbumUploadScreen> {
                   ),
                   const SizedBox(height: 7),
                   DropdownButtonFormField<String>(
-                    value: _genre,
+                    initialValue: _genre,
                     isExpanded: true,
                     decoration: _dropdownDecoration(),
                     dropdownColor: Colors.white,

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../../widgets/opentune_ui.dart';
 import '../../widgets/player_state.dart';
-import '../review/review_screen.dart';
 
 class FullScreenPlayerScreen extends StatefulWidget {
   const FullScreenPlayerScreen({super.key});
@@ -97,11 +95,12 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
 
                     // Album cover
                     SongCover(
-                      seed: 'setsunarensa',
+                      coverImage: 'assets/images/covers/setsunarensa_cover.jpg',
                       width: artworkSize,
                       height: artworkSize,
                       radius: 12,
                     ),
+
                     const SizedBox(height: 26),
 
                     Row(
@@ -129,25 +128,6 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                             ],
                           ),
                         ),
-
-                        //Tombol Review & Rating
-                        IconButton(
-                          tooltip: 'Beri Ulasan & Rating',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ReviewScreen(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.star_rate_rounded,
-                            color: OpenTuneColors.purple,
-                            size: 25,
-                          ),
-                        ),
-
                         IconButton(
                           tooltip: 'Favorit',
                           onPressed: () {

@@ -806,7 +806,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   backgroundColor: _panel,
                                   title: const Text('Ubah role'),
                                   content: DropdownButtonFormField<String>(
-                                    value: selectedRole,
+                                    initialValue: selectedRole,
                                     dropdownColor: _panel,
                                     items: const [
                                       DropdownMenuItem(

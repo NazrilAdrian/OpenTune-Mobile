@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../profile/profile_screen.dart';
 import '../../navigation/custom_navbar.dart';
 import 'register_screen.dart';
-import '../admin/admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFC4B5FD).withOpacity(0.45),
+                color: const Color(0xFFC4B5FD).withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -56,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFA78BFA).withOpacity(0.35),
+                color: const Color(0xFFA78BFA).withValues(alpha: 0.35),
               ),
             ),
           ),
@@ -68,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFDDD6FE).withOpacity(0.5),
+                color: const Color(0xFFDDD6FE).withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -93,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.12),
+                          color:
+                              const Color(0xFF7C3AED).withValues(alpha: 0.12),
                           blurRadius: 40,
                           offset: const Offset(0, 8),
                         ),
@@ -376,14 +375,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: OutlinedButton.icon(                          
-                              onPressed: () {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => const AdminScreen(),
-                                  ),
-                                );
-                              },
+                          child: OutlinedButton.icon(
+                            onPressed: () {},
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(
                                 color: Color(0xFFE5E7EB),

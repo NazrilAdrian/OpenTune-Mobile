@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFC4B5FD).withOpacity(0.45),
+                color: const Color(0xFFC4B5FD).withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -53,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFA78BFA).withOpacity(0.35),
+                color: const Color(0xFFA78BFA).withValues(alpha: 0.35),
               ),
             ),
           ),
@@ -65,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFDDD6FE).withOpacity(0.5),
+                color: const Color(0xFFDDD6FE).withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -90,7 +90,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withOpacity(0.12),
+                          color:
+                              const Color(0xFF7C3AED).withValues(alpha: 0.12),
                           blurRadius: 40,
                           offset: const Offset(0, 8),
                         ),
@@ -177,8 +178,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: const [
+                            const Row(
+                              children: [
                                 Text(
                                   'Password',
                                   style: TextStyle(
@@ -257,8 +258,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: const [
+                            const Row(
+                              children: [
                                 Text(
                                   'Confirm Password',
                                   style: TextStyle(

@@ -8,7 +8,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  bool _obscureDeletePassword = true;
+  final bool _obscureDeletePassword = true;
 
   // ─── Confirm Delete Dialog ─────────────────────────────────────────────────
   void _showDeleteConfirmDialog() {
