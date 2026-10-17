@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import '../admin/admin_screen.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -459,7 +460,7 @@ class _LandingScreenState extends State<LandingScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const RegisterScreen(),
+                                  builder: (_) => const AdminScreen(),
                                 ),
                               );
                             },
