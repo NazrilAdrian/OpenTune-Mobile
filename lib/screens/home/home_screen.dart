@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/opentune_ui.dart';
+import '../../widgets/profile_dropdown_button.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback? onProfileTap;
@@ -40,17 +41,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  InkWell(
-                    onTap: onProfileTap,
-                    customBorder: const CircleBorder(),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/profile_picture.jpg',
-                        width: 42,
-                        height: 42,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  const ProfileDropdownButton(
+                    size: 42,
+                    currentScreen: CurrentScreenType.home,
                   ),
                 ],
               ),

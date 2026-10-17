@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/auth/login_screen.dart';
+import 'screens/landing/landing_screen.dart';
 
 void main() => runApp(const MyApp());
 
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'sans-serif',
       ),
-      home: const LoginScreen(),
+      home: const LandingScreen(),
     );
   }
 }
