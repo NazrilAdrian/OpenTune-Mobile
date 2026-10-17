@@ -1,8 +1,8 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\OpenTune-Mobile"
-export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=C:\OpenTune-Mobile\ios\Flutter\ephemeral\Packages\.packages\FlutterFramework"
+export "FLUTTER_ROOT=C:\src\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\Rafli\OneDrive\Desktop\pbm\OpenTune-Mobile"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=C:\Users\Rafli\OneDrive\Desktop\pbm\OpenTune-Mobile\ios\Flutter\ephemeral\Packages\.packages\FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
