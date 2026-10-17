@@ -251,7 +251,7 @@ class _SongUploadScreenState extends State<SongUploadScreen> {
                     const SizedBox(height: 7),
 
                     DropdownButtonFormField<String>(
-                      initialValue: _genre,
+                      value: _genre,
                       isExpanded: true,
                       decoration: _dropdownDecoration(),
                       dropdownColor: Colors.white,
