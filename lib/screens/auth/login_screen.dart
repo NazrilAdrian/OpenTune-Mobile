@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../features/auth/data/auth_profile_repository.dart';
 import '../../navigation/custom_navbar.dart';
 import 'register_screen.dart';
 
@@ -10,8 +11,49 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _repo = AuthProfileRepository();
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _identifierController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signIn() async {
+    if (_identifierController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      _showMessage('Email/username dan password wajib diisi.');
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await _repo.signIn(
+        emailOrUsername: _identifierController.text,
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(builder: (_) => const CustomNavbar()),
+      );
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +140,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _identifierController,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: InputDecoration(
                   hintText: 'Enter your email or username',
                   hintStyle: const TextStyle(
@@ -107,16 +153,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: 14,
                     fontFamily: 'Poppins',
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF7C3AED), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -140,16 +186,20 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: InputDecoration(
                   hintText: '••••••••••••••',
                   hintStyle: const TextStyle(
                     color: Color(0xFFD1D5DB),
                     fontSize: 14,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -170,8 +220,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF7C3AED), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -235,13 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CustomNavbar()),
-                    );
-                  },
+                  onPressed: _isLoading ? null : _signIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5B21B6),
                     shape: RoundedRectangleBorder(

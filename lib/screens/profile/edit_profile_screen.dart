@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../features/auth/data/auth_profile_repository.dart';
 import '../../widgets/profile_dropdown_button.dart';
 import '../auth/login_screen.dart';
 
@@ -10,10 +14,69 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _usernameController =
-      TextEditingController(text: 'Alexander The Great');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'email@example.com');
+  final _repo = AuthProfileRepository();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  XFile? _selectedImage;
+  String? _currentAvatarUrl;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await _repo.getCurrentProfile();
+      if (!mounted) return;
+      setState(() {
+        _usernameController.text = profile?.username ?? '';
+        _emailController.text = profile?.email ?? '';
+        _currentAvatarUrl = profile?.profilePicture;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showMessage(error.toString());
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75,
+    );
+    if (file != null) setState(() => _selectedImage = file);
+  }
+
+  Future<void> _saveProfile() async {
+    if (_usernameController.text.trim().isEmpty) {
+      _showMessage('Username tidak boleh kosong.');
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await _repo.updateProfile(
+        newUsername: _usernameController.text,
+        newAvatarFile: _selectedImage,
+      );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   void dispose() {
@@ -135,7 +198,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFD1D5DB)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -155,22 +219,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         // Confirm Delete (Red)
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(dialogContext);
-                              // Success delete, navigate to login
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                                (route) => false,
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Account permanently deleted.'),
-                                  backgroundColor: Color(0xFFDC2626),
-                                ),
-                              );
+                              try {
+                                await _repo.deleteAccount();
+                                if (!context.mounted) return;
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const LoginScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Account permanently deleted.'),
+                                  ),
+                                );
+                              } catch (error) {
+                                if (mounted) _showMessage(error.toString());
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFE02424),
@@ -257,9 +326,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF5634EC), width: 1.5),
+                  border:
+                      Border.all(color: const Color(0xFF5634EC), width: 1.5),
                 ),
-                child: const Icon(Icons.headphones, color: Color(0xFF5634EC), size: 16),
+                child: const Icon(Icons.headphones,
+                    color: Color(0xFF5634EC), size: 16),
               ),
             ),
             const SizedBox(width: 8),
@@ -361,12 +432,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           children: [
                             // Layer 1: Avatar Bulat
                             ClipOval(
-                              child: Image.asset(
-                                'assets/images/profile_picture.jpg',
-                                width: 92,
-                                height: 92,
-                                fit: BoxFit.cover,
-                              ),
+                              child: _selectedImage == null
+                                  ? (_currentAvatarUrl == null
+                                      ? Container(
+                                          width: 92,
+                                          height: 92,
+                                          color: const Color(0xFFE9D5FF),
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 42,
+                                            color: Color(0xFF5634EC),
+                                          ),
+                                        )
+                                      : Image.network(
+                                          _currentAvatarUrl!,
+                                          width: 92,
+                                          height: 92,
+                                          fit: BoxFit.cover,
+                                        ))
+                                  : FutureBuilder<Uint8List>(
+                                      future: _selectedImage!.readAsBytes(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return const SizedBox(
+                                            width: 92,
+                                            height: 92,
+                                          );
+                                        }
+                                        return Image.memory(
+                                          snapshot.data!,
+                                          width: 92,
+                                          height: 92,
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
+                                    ),
                             ),
                             // Layer 2: Semi-transparent Overlay with Camera Icon
                             Positioned.fill(
@@ -390,14 +490,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                         // Change Photo Button
                         GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Change photo clicked'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          },
+                          onTap: _pickAvatar,
                           child: const Text(
                             'Change Photo',
                             style: TextStyle(
@@ -468,7 +561,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         fillColor: Colors.white,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -516,7 +610,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         fillColor: Colors.white,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE5E7EB)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -534,15 +629,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Row(
                       children: [
                         ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Changes saved successfully!'),
-                                backgroundColor: Color(0xFF5634EC),
-                              ),
-                            );
-                            Navigator.pop(context);
-                          },
+                          onPressed: _isLoading ? null : _saveProfile,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF5634EC),
                             padding: const EdgeInsets.symmetric(
