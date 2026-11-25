@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
-import 'screens/auth/login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/network/supabase_config.dart';
+import 'screens/landing/landing_screen.dart';
 
-void main() => runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -21,7 +32,7 @@ class MyApp extends StatelessWidget {
         ),
         fontFamily: 'sans-serif',
       ),
-      home: const LoginScreen(),
+      home: const LandingScreen(),
     );
   }
 }

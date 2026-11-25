@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-const _purple = Color(0xFF7C3AED);
-const _background = Color(0xFF0F0F1A);
-const _panel = Color(0xFF1A1A2E);
+import '../../widgets/opentune_ui.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -12,120 +9,97 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  int _selectedTab = 0;
-  int _managementTab = 0;
+  int _tab = 0;
+  int _catalogTab = 0;
+  String _query = '';
+  String _adminName = 'Nazla Admin';
+  String _adminUsername = 'nazla_admin';
+  String _adminEmail = 'nazla@admin.com';
+  String _adminPhone = '';
+
+  final List<Map<String, dynamic>> _users = [
+    {'name': 'Alya Putri', 'email': 'alya@email.com', 'role': 'User', 'active': true},
+    {'name': 'Raka Pratama', 'email': 'raka@email.com', 'role': 'User', 'active': true},
+    {'name': 'Nazla Admin', 'email': 'nazla@admin.com', 'role': 'Admin', 'active': true},
+  ];
 
   final List<Map<String, String>> _songs = [
-    {
-      'title': 'Midnight City',
-      'artist': 'M83',
-      'album': 'Hurry Up, We’re Dreaming',
-      'genre': 'Electronic'
-    },
-    {'title': 'Snooze', 'artist': 'SZA', 'album': 'SOS', 'genre': 'R&B'},
-    {
-      'title': 'Blinding Lights',
-      'artist': 'The Weeknd',
-      'album': 'After Hours',
-      'genre': 'Pop'
-    },
+    {'title': 'Setsunarensa', 'artist': 'Radwimps', 'album': 'Your Name', 'genre': 'Pop'},
+    {'title': 'Dramaturgy', 'artist': 'Eve', 'album': '文化', 'genre': 'Rock'},
+    {'title': 'Starlight Parade', 'artist': 'Sekai No Owari', 'album': 'Tree', 'genre': 'Pop'},
+    {'title': 'Saikai', 'artist': 'Vaundy', 'album': 'Replica', 'genre': 'Indie'},
   ];
 
   final List<Map<String, String>> _albums = [
-    {'name': 'After Hours', 'artist': 'The Weeknd', 'year': '2020'},
-    {'name': 'SOS', 'artist': 'SZA', 'year': '2022'},
-    {'name': 'Hurry Up, We’re Dreaming', 'artist': 'M83', 'year': '2011'},
+    {'name': 'Your Name', 'artist': 'Radwimps', 'year': '2016'},
+    {'name': '文化', 'artist': 'Eve', 'year': '2020'},
+    {'name': 'Tree', 'artist': 'Sekai No Owari', 'year': '2015'},
   ];
 
   final List<Map<String, String>> _artists = [
-    {'name': 'The Weeknd', 'genre': 'Pop / R&B', 'country': 'Canada'},
-    {'name': 'SZA', 'genre': 'R&B', 'country': 'United States'},
-    {'name': 'M83', 'genre': 'Electronic', 'country': 'France'},
+    {'name': 'Radwimps', 'genre': 'Rock', 'country': 'Jepang'},
+    {'name': 'Eve', 'genre': 'Rock / Pop', 'country': 'Jepang'},
+    {'name': 'Vaundy', 'genre': 'Pop', 'country': 'Jepang'},
   ];
 
   final List<Map<String, String>> _genres = [
     {'name': 'Pop', 'description': 'Musik populer'},
+    {'name': 'Rock', 'description': 'Musik dengan karakter gitar kuat'},
+    {'name': 'Indie', 'description': 'Musik independen'},
     {'name': 'R&B', 'description': 'Rhythm and blues'},
-    {'name': 'Electronic', 'description': 'Musik elektronik'},
   ];
 
-  final List<Map<String, dynamic>> _users = [
-    {
-      'name': 'Alya Putri',
-      'email': 'alya@email.com',
-      'role': 'User',
-      'banned': false
-    },
-    {
-      'name': 'Raka Pratama',
-      'email': 'raka@email.com',
-      'role': 'User',
-      'banned': false
-    },
-    {
-      'name': 'Nazla Admin',
-      'email': 'nazla@admin.com',
-      'role': 'Admin',
-      'banned': false
-    },
-  ];
+  void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: OpenTuneColors.purple,
+        ),
+      );
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
-  }
-
-  Future<void> _editRecord({
+  Future<void> _form({
     required String title,
-    required List<String> fields,
-    required List<String> initialValues,
-    required void Function(List<String>) onSave,
+    required List<String> labels,
+    required List<String> initial,
+    required ValueChanged<List<String>> onSave,
   }) async {
     final controllers = List.generate(
-      fields.length,
-      (index) => TextEditingController(
-        text: index < initialValues.length ? initialValues[index] : '',
-      ),
+      labels.length,
+      (i) => TextEditingController(text: i < initial.length ? initial[i] : ''),
     );
-    final formKey = GlobalKey<FormState>();
-
-    final values = await showDialog<List<String>>(
+    final key = GlobalKey<FormState>();
+    final result = await showDialog<List<String>>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: _panel,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         title: Text(
           title,
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: OpenTuneColors.text,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: Form(
-          key: formKey,
+          key: key,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (var index = 0; index < fields.length; index++)
+                for (var i = 0; i < labels.length; i++)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: TextFormField(
-                      controller: controllers[index],
-                      style: const TextStyle(color: Colors.white),
+                      controller: controllers[i],
                       decoration: InputDecoration(
-                        labelText: fields[index],
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        filled: true,
-                        fillColor: _background,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        labelText: labels[i],
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: OpenTuneColors.purple),
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '${fields[index]} wajib diisi';
-                        }
-                        return null;
-                      },
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? '${labels[i]} wajib diisi'
+                          : null,
                     ),
                   ),
               ],
@@ -134,19 +108,14 @@ class _AdminScreenState extends State<AdminScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Batal'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _purple),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: OpenTuneColors.purple),
             onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(
-                  dialogContext,
-                  controllers
-                      .map((controller) => controller.text.trim())
-                      .toList(),
-                );
+              if (key.currentState!.validate()) {
+                Navigator.pop(ctx, controllers.map((c) => c.text.trim()).toList());
               }
             },
             child: const Text('Simpan'),
@@ -154,91 +123,115 @@ class _AdminScreenState extends State<AdminScreen> {
         ],
       ),
     );
-
     for (final controller in controllers) {
       controller.dispose();
     }
-
-    if (values != null && mounted) {
-      onSave(values);
+    if (result != null && mounted) {
+      onSave(result);
       setState(() {});
-      _showMessage('Perubahan berhasil disimpan sementara.');
+      _message('Perubahan disimpan sementara.');
     }
   }
 
-  void _confirmDelete(String label, VoidCallback onDelete) {
+  void _delete(String label, VoidCallback action) {
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: _panel,
-        title: const Text('Hapus data?', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'Data $label akan dihapus dari tampilan ini.',
-          style: const TextStyle(color: Colors.white70),
-        ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi hapus'),
+        content: Text('Yakin ingin menghapus $label dari daftar contoh?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
           TextButton(
             onPressed: () {
-              Navigator.pop(dialogContext);
-              onDelete();
+              Navigator.pop(ctx);
+              action();
               setState(() {});
-              _showMessage('Data berhasil dihapus dari daftar sementara.');
+              _message('Data dihapus dari simulasi.');
             },
-            child:
-                const Text('Hapus', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 
+  void _openProfile() {
+    setState(() {
+      _tab = 4;
+      _query = '';
+    });
+  }
+
+  void _selectTab(int index) {
+    if (index == 4) {
+      _openProfile();
+      return;
+    }
+    setState(() {
+      _tab = index;
+      _query = '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    const pageTitles = [
-      'Dashboard',
-      'Song Management',
-      'Album Management',
-      'Artist Management',
-      'Management',
+    const titles = [
+      'Dashboard Admin',
+      'Manajemen Pengguna',
+      'Katalog Musik',
+      'Manajemen Genre',
+      'Profil Admin',
     ];
+    final pageTitle = titles[_tab];
 
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: OpenTuneColors.background,
       appBar: AppBar(
-        backgroundColor: _background,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: OpenTuneColors.text),
+          onPressed: () => Navigator.maybePop(context),
+          tooltip: 'Kembali',
+        ),    
         title: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _purple.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.headphones_rounded,
-                  color: Color(0xFFA78BFA)),
+            Image.asset(
+              'assets/images/logo_opentune.png',
+              width: 39,
+              height: 39,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(width: 10),
-            const Text('OpenTune',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-            const Spacer(),
+            const SizedBox(width: 9),
+            const Expanded(
+              child: Text(
+                'OpenTune',
+                style: TextStyle(
+                  color: OpenTuneColors.purple,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 22,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
               decoration: BoxDecoration(
-                color: _purple.withValues(alpha: 0.18),
+                color: OpenTuneColors.purplePale,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
                 'ADMIN',
                 style: TextStyle(
-                  color: Color(0xFFC4B5FD),
+                  color: OpenTuneColors.purple,
+                  fontFamily: 'Poppins',
                   fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -249,619 +242,1049 @@ class _AdminScreenState extends State<AdminScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          pageTitles[_selectedTab],
-                          style: const TextStyle(
-                              fontSize: 23, fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Kelola ekosistem musik OpenTune',
-                          style: TextStyle(color: Colors.white60, fontSize: 12),
-                        ),
-                      ],
+                  Text(
+                    pageTitle,
+                    style: const TextStyle(
+                      color: OpenTuneColors.text,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  if (_selectedTab == 4) _managementSelector(),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Kelola pengguna dan katalog musik OpenTune',
+                    style: TextStyle(color: OpenTuneColors.muted, fontSize: 12),
+                  ),
+                  if (_tab != 0) ...[
+                    const SizedBox(height: 14),
+                    TextField(
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      cursorColor: OpenTuneColors.purple,
+                      onChanged: (value) => setState(() => _query = value),
+                      decoration: InputDecoration(
+                        hintText: _tab == 2
+                            ? 'Cari lagu, album, atau artis...'
+                            : 'Cari data...',
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.grey,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: OpenTuneColors.border,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: OpenTuneColors.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: OpenTuneColors.purple,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             Expanded(
               child: IndexedStack(
-                index: _selectedTab,
+                index: _tab,
                 children: [
                   _dashboard(),
-                  _recordList(kind: 'song'),
-                  _recordList(kind: 'album'),
-                  _recordList(kind: 'artist'),
-                  _managementPage(),
+                  _userPage(),
+                  _catalogPage(),
+                  _genrePage(),
+                  _profilePage(),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: const Color(0xFF171727),
-        indicatorColor: _purple.withValues(alpha: 0.25),
-        selectedIndex: _selectedTab,
-        onDestinationSelected: (index) => setState(() => _selectedTab = index),
-        destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
-          NavigationDestination(
-              icon: Icon(Icons.music_note_rounded), label: 'Songs'),
-          NavigationDestination(
-              icon: Icon(Icons.album_rounded), label: 'Albums'),
-          NavigationDestination(icon: Icon(Icons.mic_rounded), label: 'Artis'),
-          NavigationDestination(
-              icon: Icon(Icons.tune_rounded), label: 'Lainnya'),
-        ],
-      ),
-    );
-  }
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: OpenTuneColors.purplePale,
 
-  Widget _managementSelector() {
-    return PopupMenuButton<int>(
-      initialValue: _managementTab,
-      color: _panel,
-      onSelected: (value) => setState(() => _managementTab = value),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: 0, child: Text('Genre Management')),
-        PopupMenuItem(value: 1, child: Text('User Management')),
-      ],
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: _panel,
-          borderRadius: BorderRadius.circular(12),
+          iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
+            (states) {
+              if (states.contains(WidgetState.selected)) {
+                return const IconThemeData(
+                  color: OpenTuneColors.purple,
+                );
+              }
+              return const IconThemeData(
+                color: Colors.grey,
+              );
+            },
+          ),
+
+          labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
+            (states) {
+              if (states.contains(WidgetState.selected)) {
+                return const TextStyle(
+                  color: OpenTuneColors.purple,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                );
+              }
+              return const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w400,
+                fontSize: 12,
+              );
+            },
+          ),
         ),
-        child: Row(
-          children: [
-            Text(_managementTab == 0 ? 'Genre' : 'Users'),
-            const Icon(Icons.expand_more),
+
+        child: NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: _selectTab,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.people_outline),
+              selectedIcon: Icon(Icons.people),
+              label: 'Pengguna',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.library_music_outlined),
+              selectedIcon: Icon(Icons.library_music),
+              label: 'Katalog',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.category_outlined),
+              selectedIcon: Icon(Icons.category),
+              label: 'Genre',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.account_circle_outlined),
+              selectedIcon: Icon(Icons.account_circle),
+              label: 'Profil',
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _dashboard() {
+  Widget _dashboard() => ListView(
+        padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [OpenTuneColors.purple, Color(0xFF8B6CFA)],
+              ),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 30),
+                SizedBox(height: 12),
+                Text(
+                  'Selamat datang, Admin!',
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Pantau dan kelola konten OpenTune di satu tempat.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.45,
+            children: [
+              _stat('Total Pengguna', '${_users.length}', Icons.people_alt_outlined),
+              _stat('Total Lagu', '${_songs.length}', Icons.music_note_rounded),
+              _stat('Total Album', '${_albums.length}', Icons.album_outlined),
+              _stat('Total Artis', '${_artists.length}', Icons.mic_none_rounded),
+              _stat('Total Genre', '${_genres.length}', Icons.category_rounded),
+              _stat('Pengguna Nonaktif', '${_users.where((u) => u['active'] != true).length}', Icons.person_off_outlined),
+            ],
+          ),
+          const SizedBox(height: 22),
+          const Text(
+            'Akses cepat',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: OpenTuneColors.text),
+          ),
+          const SizedBox(height: 10),
+          _quick(Icons.people_outline, 'Kelola pengguna', 'Lihat role dan status akun', () => _selectTab(1)),
+          _quick(Icons.library_music_outlined, 'Kelola katalog', 'Lagu, album, dan artis', () => _selectTab(2)),
+          _quick(Icons.category_outlined, 'Kelola genre', 'Tambah, ubah, atau hapus genre', () => _selectTab(3)),
+          const SizedBox(height: 8),
+          const Text(
+            'Data pada halaman ini adalah data dummy untuk simulasi UI/UX.',
+            style: TextStyle(color: OpenTuneColors.muted, fontSize: 12),
+          ),
+        ],
+      );
+
+  Widget _stat(String label, String value, IconData icon) => Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: OpenTuneColors.border),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: OpenTuneColors.purple, size: 23),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: OpenTuneColors.text),
+            ),
+            Text(label, style: const TextStyle(fontSize: 11, color: OpenTuneColors.muted)),
+          ],
+        ),
+      );
+
+  Widget _quick(IconData icon, String title, String subtitle, VoidCallback onTap) => Card(
+        color: Colors.white,
+        elevation: 0,
+        margin: const EdgeInsets.only(bottom: 9),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: OpenTuneColors.border),
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: OpenTuneColors.purplePale,
+            child: Icon(icon, color: OpenTuneColors.purple),
+          ),
+          title: Text(title, style: const TextStyle(color: OpenTuneColors.text, fontWeight: FontWeight.w600)),
+          subtitle: Text(subtitle, style: const TextStyle(color: OpenTuneColors.muted, fontSize: 12)),
+          trailing: const Icon(Icons.chevron_right, color: OpenTuneColors.muted),
+          onTap: onTap,
+        ),
+      );
+
+  Widget _userPage() {
+    final items = _users
+        .where((u) => '${u['name']} ${u['email']} ${u['role']}'.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
+        Row(
+          children: [
+            Expanded(child: Text('${items.length} pengguna ditampilkan', style: const TextStyle(color: OpenTuneColors.muted))),
+            FilledButton.icon(
+              onPressed: () => _form(
+                title: 'Tambah pengguna',
+                labels: const ['Nama', 'Email', 'Role (User/Admin)'],
+                initial: const [],
+                onSave: (v) => _users.add({'name': v[0], 'email': v[1], 'role': v[2], 'active': true}),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Tambah'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (final user in items)
+          _itemCard(
+            icon: Icons.person_outline,
+            title: user['name'] as String,
+            subtitle: '${user['email']}\nRole: ${user['role']}',
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _form(
+                    title: 'Edit pengguna',
+                    labels: const ['Nama', 'Email', 'Role (User/Admin)'],
+                    initial: [user['name'] as String, user['email'] as String, user['role'] as String],
+                    onSave: (v) { user['name'] = v[0]; user['email'] = v[1]; user['role'] = v[2]; },
+                  );
+                }
+                if (value == 'status') setState(() => user['active'] = user['active'] != true);
+                if (value == 'delete') _delete('pengguna ${user['name']}', () => _users.remove(user));
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit data')),
+                PopupMenuItem(value: 'status', child: Text(user['active'] == true ? 'Nonaktifkan akun' : 'Aktifkan akun')),
+                const PopupMenuItem(value: 'delete', child: Text('Hapus pengguna')),
+              ],
+            ),
+            badge: user['active'] == true ? 'Aktif' : 'Nonaktif',
+          ),
+      ],
+    );
+  }
+
+  Widget _catalogPage() => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+        child: SegmentedButton<int>(
+          segments: const [
+            ButtonSegment(
+              value: 0,
+              label: Text('Lagu'),
+              icon: Icon(Icons.music_note_outlined),
+            ),
+            ButtonSegment(
+              value: 1,
+              label: Text('Album'),
+              icon: Icon(Icons.album_outlined),
+            ),
+            ButtonSegment(
+              value: 2,
+              label: Text('Artis'),
+              icon: Icon(Icons.mic_none_rounded),
+            ),
+          ],
+          selected: {_catalogTab},
+          onSelectionChanged: (selection) =>
+              setState(() => _catalogTab = selection.first),
+          showSelectedIcon: false,
+
+          // PENGATURAN WARNA SAJA
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+              (states) {
+                if (states.contains(WidgetState.selected)) {
+                  return OpenTuneColors.purplePale;
+                }
+                return Colors.white;
+              },
+            ),
+            foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+              (states) {
+                if (states.contains(WidgetState.selected)) {
+                  return OpenTuneColors.purple;
+                }
+                return Colors.grey;
+              },
+            ),
+            side: WidgetStateProperty.all(
+              const BorderSide(color: Color(0xFFE5E5EA)),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: IndexedStack(
+          index: _catalogTab,
+          children: [_songPage(), _albumPage(), _artistPage()],
+        ),
+      ),
+    ],
+  );
+
+  Widget _songPage() {
+    final items = _songs.where((s) => s.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+      children: [
+        _listHeader('${items.length} lagu ditampilkan', 'Tambah lagu', () => _form(
+          title: 'Tambah lagu',
+          labels: const ['Judul lagu', 'Artis', 'Album', 'Genre'],
+          initial: const [],
+          onSave: (v) => _songs.add({'title': v[0], 'artist': v[1], 'album': v[2], 'genre': v[3]}),
+        )),
+        const SizedBox(height: 12),
+        for (final song in items)
+          _itemCard(
+            icon: Icons.music_note_rounded,
+            title: song['title']!,
+            subtitle: '${song['artist']} • ${song['album']}\nGenre: ${song['genre']}',
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _form(
+                    title: 'Edit lagu',
+                    labels: const ['Judul lagu', 'Artis', 'Album', 'Genre'],
+                    initial: [song['title']!, song['artist']!, song['album']!, song['genre']!],
+                    onSave: (v) { song['title'] = v[0]; song['artist'] = v[1]; song['album'] = v[2]; song['genre'] = v[3]; },
+                  );
+                }
+                if (value == 'delete') _delete('lagu ${song['title']}', () => _songs.remove(song));
+                if (value == 'detail') {
+                  showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+                    title: Text(song['title']!),
+                    content: Text('Artis: ${song['artist']}\nAlbum: ${song['album']}\nGenre: ${song['genre']}'),
+                    actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tutup'))],
+                  ));
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'detail', child: Text('Lihat detail')),
+                PopupMenuItem(value: 'edit', child: Text('Edit metadata')),
+                PopupMenuItem(value: 'delete', child: Text('Hapus lagu')),
+              ],
+            ),
+            badge: song['genre']!,
+          ),
+      ],
+    );
+  }
+
+  Widget _albumPage() {
+    final items = _albums.where((a) => a.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+      children: [
+        _listHeader('${items.length} album ditampilkan', 'Tambah album', () => _form(
+          title: 'Tambah album',
+          labels: const ['Nama album', 'Artis', 'Tahun rilis'],
+          initial: const [],
+          onSave: (v) => _albums.add({'name': v[0], 'artist': v[1], 'year': v[2]}),
+        )),
+        const SizedBox(height: 12),
+        for (final album in items)
+          _itemCard(
+            icon: Icons.album_outlined,
+            title: album['name']!,
+            subtitle: 'Artis: ${album['artist']}\nTahun rilis: ${album['year']}',
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _form(
+                    title: 'Edit album',
+                    labels: const ['Nama album', 'Artis', 'Tahun rilis'],
+                    initial: [album['name']!, album['artist']!, album['year']!],
+                    onSave: (v) { album['name'] = v[0]; album['artist'] = v[1]; album['year'] = v[2]; },
+                  );
+                }
+                if (value == 'delete') _delete('album ${album['name']}', () => _albums.remove(album));
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit album')),
+                PopupMenuItem(value: 'delete', child: Text('Hapus album')),
+              ],
+            ),
+            badge: album['year']!,
+          ),
+      ],
+    );
+  }
+
+  Widget _artistPage() {
+    final items = _artists.where((a) => a.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+      children: [
+        _listHeader('${items.length} artis ditampilkan', 'Tambah artis', () => _form(
+          title: 'Tambah artis',
+          labels: const ['Nama artis', 'Genre', 'Negara'],
+          initial: const [],
+          onSave: (v) => _artists.add({'name': v[0], 'genre': v[1], 'country': v[2]}),
+        )),
+        const SizedBox(height: 12),
+        for (final artist in items)
+          _itemCard(
+            icon: Icons.mic_none_rounded,
+            title: artist['name']!,
+            subtitle: 'Genre: ${artist['genre']}\nNegara: ${artist['country']}',
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _form(
+                    title: 'Edit artis',
+                    labels: const ['Nama artis', 'Genre', 'Negara'],
+                    initial: [artist['name']!, artist['genre']!, artist['country']!],
+                    onSave: (v) { artist['name'] = v[0]; artist['genre'] = v[1]; artist['country'] = v[2]; },
+                  );
+                }
+                if (value == 'delete') _delete('artis ${artist['name']}', () => _artists.remove(artist));
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit artis')),
+                PopupMenuItem(value: 'delete', child: Text('Hapus artis')),
+              ],
+            ),
+            badge: artist['genre']!,
+          ),
+      ],
+    );
+  }
+
+  Widget _genrePage() {
+    final items = _genres.where((g) => '${g['name']} ${g['description']}'.toLowerCase().contains(_query.toLowerCase())).toList();
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+      children: [
+        _listHeader('${items.length} genre ditampilkan', 'Tambah genre', () => _form(
+          title: 'Tambah genre',
+          labels: const ['Nama genre', 'Deskripsi'],
+          initial: const [],
+          onSave: (v) => _genres.add({'name': v[0], 'description': v[1]}),
+        )),
+        const SizedBox(height: 12),
+        for (final genre in items)
+          _itemCard(
+            icon: Icons.category_outlined,
+            title: genre['name']!,
+            subtitle: genre['description']!,
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _form(
+                    title: 'Edit genre',
+                    labels: const ['Nama genre', 'Deskripsi'],
+                    initial: [genre['name']!, genre['description']!],
+                    onSave: (v) { genre['name'] = v[0]; genre['description'] = v[1]; },
+                  );
+                }
+                if (value == 'delete') _delete('genre ${genre['name']}', () => _genres.remove(genre));
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('Edit genre')),
+                PopupMenuItem(value: 'delete', child: Text('Hapus genre')),
+              ],
+            ),
+            badge: 'Genre',
+          ),
+      ],
+    );
+  }
+
+  Widget _profilePage() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 4, 18, 28),
+      children: [
+        // HEADER PROFIL
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient:
-                const LinearGradient(colors: [_purple, Color(0xFF4C1D95)]),
-            borderRadius: BorderRadius.circular(22),
+            gradient: const LinearGradient(
+              colors: [
+                OpenTuneColors.purple,
+                Color(0xFF8B6CFA),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
           ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
             children: [
-              Text('Selamat datang, Admin',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 6),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(Icons.shield_outlined),
-                  SizedBox(width: 8),
-                  Text('Admin workspace',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
-                ],
+              const CircleAvatar(
+                radius: 42,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.admin_panel_settings_rounded,
+                  size: 46,
+                  color: OpenTuneColors.purple,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Nazla Admin',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'nazla@admin.com',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'SUPER ADMIN',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: OpenTuneColors.purple,
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _editAdminProfile,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text(
+                    'Edit Profil',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 18),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.35,
-          children: [
-            _statCard('Total Lagu', _songs.length.toString(), Icons.music_note,
-                const Color(0xFFA78BFA)),
-            _statCard('Total Album', _albums.length.toString(), Icons.album,
-                const Color(0xFF60A5FA)),
-            _statCard('Total Artis', _artists.length.toString(), Icons.mic,
-                const Color(0xFFFBBF24)),
-            _statCard('Total Genre', _genres.length.toString(), Icons.category,
-                const Color(0xFF34D399)),
-            _statCard('Total User', _users.length.toString(), Icons.people,
-                const Color(0xFFF472B6)),
-            _statCard(
-              'User Banned',
-              _users.where((user) => user['banned'] == true).length.toString(),
-              Icons.block,
-              const Color(0xFFF87171),
-            ),
-          ],
+
+        const SizedBox(height: 22),
+
+        // INFORMASI PRIBADI
+        _profileSection(
+          title: 'Informasi Pribadi',
+          subtitle: 'Informasi akun administrator',
+          icon: Icons.person_outline,
+          child: Column(
+            children: [
+              _profileInfo(
+                Icons.badge_outlined,
+                'Nama Lengkap',
+                _adminName,
+              ),
+              _profileInfo(
+                Icons.alternate_email,
+                'Username',
+                _adminUsername,
+              ),
+              _profileInfo(
+                Icons.email_outlined,
+                'Email',
+                _adminEmail,
+              ),
+              _profileInfo(
+                Icons.phone_outlined,
+                'Nomor Telepon',
+                _adminPhone.isEmpty ? 'Belum diisi' : _adminPhone,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        const Text('Akses cepat',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+
+        const SizedBox(height: 16),
+
+        // KEAMANAN AKUN
+        _profileSection(
+          title: 'Keamanan Akun',
+          subtitle: 'Kelola keamanan administrator',
+          icon: Icons.shield_outlined,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const CircleAvatar(
+              backgroundColor: OpenTuneColors.purplePale,
+              child: Icon(
+                Icons.lock_outline,
+                color: OpenTuneColors.purple,
+              ),
+            ),
+            title: const Text(
+              'Password',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: OpenTuneColors.text,
+              ),
+            ),
+            subtitle: const Text('Ubah password akun admin'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _changeAdminPassword,
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // AKTIVITAS AKUN
+        _profileSection(
+          title: 'Aktivitas Akun',
+          subtitle: 'Informasi aktivitas administrator',
+          icon: Icons.history,
+          child: Column(
+            children: [
+              _profileInfo(
+                Icons.circle,
+                'Status Akun',
+                'Aktif',
+              ),
+              _profileInfo(
+                Icons.access_time,
+                'Terakhir Login',
+                'Belum tersedia',
+              ),
+              _profileInfo(
+                Icons.calendar_today_outlined,
+                'Tanggal Bergabung',
+                'Belum tersedia',
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // LOGOUT
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.red,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            side: const BorderSide(color: Colors.redAccent),
+          ),
+          onPressed: _confirmAdminLogout,
+          icon: const Icon(Icons.logout),
+          label: const Text('Keluar dari Akun'),
+        ),
+
         const SizedBox(height: 12),
-        for (final item in [
-          (Icons.music_note, 'Kelola lagu', 1),
-          (Icons.album, 'Kelola album', 2),
-          (Icons.mic, 'Kelola artis', 3),
-          (Icons.settings, 'Genre & pengguna', 4),
-        ])
-          Card(
-            color: _panel,
-            child: ListTile(
-              leading: Icon(item.$1, color: const Color(0xFFA78BFA)),
-              title: Text(item.$2),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => setState(() => _selectedTab = item.$3),
+        const Center(
+          child: Text(
+            'OpenTune Admin Panel',
+            style: TextStyle(
+              color: OpenTuneColors.muted,
+              fontSize: 12,
             ),
           ),
+        ),
       ],
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon, Color color) {
+  Widget _profileSection({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Widget child,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: OpenTuneColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color),
-          Text(value,
-              style:
-                  const TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
-          Text(label,
-              style: const TextStyle(color: Colors.white60, fontSize: 12)),
+          Row(
+            children: [
+              Icon(icon, color: OpenTuneColors.purple),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: OpenTuneColors.text,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: OpenTuneColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          child,
         ],
       ),
     );
   }
 
-  Widget _recordList({required String kind}) {
-    final List<Map<String, String>> records = kind == 'song'
-        ? _songs
-        : kind == 'album'
-            ? _albums
-            : _artists;
-    final titleKey = kind == 'song' ? 'title' : 'name';
-    final title = kind == 'song'
-        ? 'Lagu'
-        : kind == 'album'
-            ? 'Album'
-            : 'Artis';
-    final fields = kind == 'song'
-        ? ['Judul lagu', 'Artis', 'Album', 'Genre']
-        : kind == 'album'
-            ? ['Nama album', 'Artis', 'Tahun rilis']
-            : ['Nama artis', 'Genre', 'Negara'];
-    final keys = kind == 'song'
-        ? ['title', 'artist', 'album', 'genre']
-        : kind == 'album'
-            ? ['name', 'artist', 'year']
-            : ['name', 'genre', 'country'];
+  Widget _profileInfo(
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 19, color: OpenTuneColors.purple),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: OpenTuneColors.muted,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: OpenTuneColors.text,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      children: [
-        Row(
+  void _editAdminProfile() {
+    _form(
+      title: 'Edit Profil Admin',
+      labels: const [
+        'Nama Lengkap',
+        'Username',
+        'Email',
+        'Nomor Telepon',
+      ],
+      initial: [
+        _adminName,
+        _adminUsername,
+        _adminEmail,
+        _adminPhone.isEmpty ? '-' : _adminPhone,
+      ],
+      onSave: (v) {
+        setState(() {
+          _adminName = v[0];
+          _adminUsername = v[1];
+          _adminEmail = v[2];
+          _adminPhone = v[3] == '-' ? '' : v[3];
+        });
+      },
+    );
+  }
+
+  void _changeAdminPassword() {
+  final formKey = GlobalKey<FormState>();
+  final currentController = TextEditingController();
+  final newController = TextEditingController();
+  final confirmController = TextEditingController();
+
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Ganti Password'),
+      content: Form(
+        key: formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [              
+              TextFormField(
+                controller: currentController,
+                obscureText: true,
+                style: const TextStyle(
+                  color: OpenTuneColors.text,
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                ),
+                cursorColor: OpenTuneColors.purple,
+                decoration: const InputDecoration(
+                  labelText: 'Password Saat Ini',
+                  labelStyle: TextStyle(
+                    color: OpenTuneColors.muted,
+                  ),
+                  floatingLabelStyle: TextStyle(
+                    color: OpenTuneColors.purple,
+                  ),
+                  border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: OpenTuneColors.border,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: OpenTuneColors.purple,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+                validator: (v) =>
+                    v == null || v.isEmpty
+                        ? 'Password saat ini wajib diisi'
+                        : null,
+              ),
+            ]
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: OpenTuneColors.purple,
+          ),
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              Navigator.pop(ctx);
+              _message(
+                'Form valid. Perubahan password belum disimpan ke server.',
+              );
+            }
+          },
+          child: const Text('Simpan'),
+        ),
+      ],
+    ),
+  ).whenComplete(() {
+    currentController.dispose();
+    newController.dispose();
+    confirmController.dispose();
+  });
+}
+
+  void _confirmAdminLogout() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Keluar dari akun?'),
+        content: const Text(
+          'Apakah kamu yakin ingin keluar dari halaman admin?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _message(
+                'Logout belum dihubungkan ke sistem autentikasi.',
+              );
+            },
+            child: const Text('Ya, Keluar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _listHeader(String countLabel, String buttonLabel, VoidCallback onAdd) => Row(
+        children: [
+          Expanded(child: Text(countLabel, style: const TextStyle(color: OpenTuneColors.muted))),
+          FilledButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(buttonLabel),
+          ),
+        ],
+      );
+
+  Widget _itemCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Widget trailing,
+    required String badge,
+  }) => Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: OpenTuneColors.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: OpenTuneColors.purplePale,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: OpenTuneColors.purple),
+            ),
+            const SizedBox(width: 11),
             Expanded(
-              child: Text(
-                '${records.length} ${title.toLowerCase()} terdaftar',
-                style: const TextStyle(color: Colors.white60),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: OpenTuneColors.text, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: const TextStyle(color: OpenTuneColors.muted, fontSize: 12, height: 1.4)),
+                  const SizedBox(height: 7),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: OpenTuneColors.purplePale,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(color: OpenTuneColors.purple, fontSize: 10, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
             ),
-            ElevatedButton.icon(
-              onPressed: () => _editRecord(
-                title: 'Tambah $title',
-                fields: fields,
-                initialValues: const [],
-                onSave: (values) {
-                  records.add({
-                    for (var i = 0; i < keys.length; i++) keys[i]: values[i]
-                  });
-                },
-              ),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Tambah'),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple, foregroundColor: Colors.white),
-            ),
+            trailing,
           ],
         ),
-        const SizedBox(height: 12),
-        if (records.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(32),
-            child: Text(
-              'Belum ada data.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white60),
-            ),
-          ),
-        for (var index = 0; index < records.length; index++)
-          Card(
-            color: _panel,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: _purple.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          kind == 'song'
-                              ? Icons.music_note
-                              : kind == 'album'
-                                  ? Icons.album
-                                  : Icons.mic,
-                          color: const Color(0xFFC4B5FD),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              records[index][titleKey] ?? '-',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 15),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              records[index][keys[1]] ?? '',
-                              style: const TextStyle(
-                                  color: Colors.white60, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            final record = records[index];
-                            _editRecord(
-                              title: 'Edit $title',
-                              fields: fields,
-                              initialValues: [
-                                for (final key in keys) record[key] ?? ''
-                              ],
-                              onSave: (values) {
-                                for (var i = 0; i < keys.length; i++) {
-                                  record[keys[i]] = values[i];
-                                }
-                              },
-                            );
-                          },
-                          icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: const Text('Edit'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _confirmDelete(
-                            title.toLowerCase(),
-                            () => records.removeAt(index),
-                          ),
-                          icon: const Icon(Icons.delete_outline, size: 16),
-                          label: const Text('Hapus'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFF87171),
-                            side: const BorderSide(color: Color(0x66F87171)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _managementPage() => _managementTab == 0 ? _genrePage() : _userPage();
-
-  Widget _genrePage() {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${_genres.length} genre terdaftar',
-                style: const TextStyle(color: Colors.white60),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () => _editRecord(
-                title: 'Tambah Genre',
-                fields: const ['Nama genre', 'Deskripsi'],
-                initialValues: const [],
-                onSave: (values) => _genres.add({
-                  'name': values[0],
-                  'description': values[1],
-                }),
-              ),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Tambah'),
-              style: ElevatedButton.styleFrom(backgroundColor: _purple),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        for (var index = 0; index < _genres.length; index++)
-          Card(
-            color: _panel,
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Color(0x337C3AED),
-                child: Icon(Icons.category, color: Color(0xFFC4B5FD)),
-              ),
-              title: Text(_genres[index]['name']!),
-              subtitle: Text(
-                _genres[index]['description']!,
-                style: const TextStyle(color: Colors.white60),
-              ),
-              trailing: PopupMenuButton<String>(
-                color: _panel,
-                onSelected: (action) {
-                  if (action == 'edit') {
-                    final genre = _genres[index];
-                    _editRecord(
-                      title: 'Edit Genre',
-                      fields: const ['Nama genre', 'Deskripsi'],
-                      initialValues: [genre['name']!, genre['description']!],
-                      onSave: (values) {
-                        genre['name'] = values[0];
-                        genre['description'] = values[1];
-                      },
-                    );
-                  } else {
-                    _confirmDelete('genre', () => _genres.removeAt(index));
-                  }
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _userPage() {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      children: [
-        Text(
-          '${_users.length} pengguna terdaftar',
-          style: const TextStyle(color: Colors.white60),
-        ),
-        const SizedBox(height: 12),
-        for (var index = 0; index < _users.length; index++)
-          Card(
-            color: _panel,
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: _purple.withValues(alpha: 0.25),
-                        child: Text(
-                          (_users[index]['name'] as String)[0],
-                          style: const TextStyle(color: Color(0xFFC4B5FD)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _users[index]['name'] as String,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              _users[index]['email'] as String,
-                              style: const TextStyle(
-                                  color: Colors.white60, fontSize: 12),
-                            ),
-                            const SizedBox(height: 5),
-                            Wrap(
-                              spacing: 6,
-                              children: [
-                                Chip(
-                                  label: Text(
-                                    _users[index]['role'] as String,
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  backgroundColor:
-                                      _purple.withValues(alpha: 0.2),
-                                ),
-                                if (_users[index]['banned'] == true)
-                                  const Chip(
-                                    label: Text('BANNED',
-                                        style: TextStyle(fontSize: 10)),
-                                    visualDensity: VisualDensity.compact,
-                                    backgroundColor: Color(0x44F87171),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            final user = _users[index];
-                            _editRecord(
-                              title: 'Edit Pengguna',
-                              fields: const ['Nama', 'Email'],
-                              initialValues: [
-                                user['name'] as String,
-                                user['email'] as String,
-                              ],
-                              onSave: (values) {
-                                user['name'] = values[0];
-                                user['email'] = values[1];
-                              },
-                            );
-                          },
-                          icon: const Icon(Icons.edit_outlined, size: 16),
-                          label: const Text('Edit'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _users[index]['banned'] =
-                                  !(_users[index]['banned'] as bool);
-                            });
-                            _showMessage(
-                              (_users[index]['banned'] as bool)
-                                  ? 'Pengguna dibanned.'
-                                  : 'Ban pengguna dibuka.',
-                            );
-                          },
-                          icon: Icon(
-                            (_users[index]['banned'] as bool)
-                                ? Icons.lock_open
-                                : Icons.block,
-                            size: 16,
-                          ),
-                          label: Text(
-                            (_users[index]['banned'] as bool) ? 'Unban' : 'Ban',
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFFBBF24),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      PopupMenuButton<String>(
-                        color: _panel,
-                        tooltip: 'Aksi pengguna',
-                        onSelected: (action) {
-                          if (action == 'role') {
-                            final user = _users[index];
-                            var selectedRole = user['role'] as String;
-                            showDialog<void>(
-                              context: context,
-                              builder: (dialogContext) => StatefulBuilder(
-                                builder: (context, setDialogState) =>
-                                    AlertDialog(
-                                  backgroundColor: _panel,
-                                  title: const Text('Ubah role'),
-                                  content: DropdownButtonFormField<String>(
-                                    initialValue: selectedRole,
-                                    dropdownColor: _panel,
-                                    items: const [
-                                      DropdownMenuItem(
-                                          value: 'User', child: Text('User')),
-                                      DropdownMenuItem(
-                                          value: 'Admin', child: Text('Admin')),
-                                    ],
-                                    onChanged: (value) {
-                                      if (value != null) {
-                                        setDialogState(
-                                            () => selectedRole = value);
-                                      }
-                                    },
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(dialogContext),
-                                      child: const Text('Batal'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        user['role'] = selectedRole;
-                                        Navigator.pop(dialogContext);
-                                        setState(() {});
-                                      },
-                                      child: const Text('Simpan'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          } else {
-                            _confirmDelete(
-                                'pengguna', () => _users.removeAt(index));
-                          }
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(
-                              value: 'role', child: Text('Ubah role')),
-                          PopupMenuItem(
-                              value: 'delete', child: Text('Hapus pengguna')),
-                        ],
-                        child: const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Icon(Icons.more_vert),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
+      );
 }
