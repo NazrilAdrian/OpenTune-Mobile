@@ -12,6 +12,11 @@ dependencies:
     sdk: flutter
   supabase_flutter: ^2.8.0
   image_picker: ^1.1.2
+  file_picker: ^13.4.1
+  archive: ^4.7.1
+  just_audio: ^0.10.6
+  audio_service: ^0.18.19
+  audio_session: ^0.2.4
 
 dev_dependencies:
   flutter_test:
