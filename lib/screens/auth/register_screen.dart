@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../features/auth/data/auth_profile_repository.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -9,9 +10,72 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _repo = AuthProfileRepository();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    if (_usernameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty) {
+      _showMessage('Username dan email wajib diisi.');
+      return;
+    }
+    if (!_agreeToTerms) {
+      _showMessage('Setujui Terms of Service dan Privacy Policy.');
+      return;
+    }
+    if (_passwordController.text.length < 8) {
+      _showMessage('Password minimal 8 karakter.');
+      return;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showMessage('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await _repo.signUp(
+        username: _usernameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      final message = response.session == null
+          ? 'Registrasi berhasil. Cek email untuk konfirmasi lalu login.'
+          : 'Registrasi berhasil.';
+      _showMessage(message);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+      );
+    } catch (error) {
+      _showMessage(error.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +151,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // ── Username Field ────────────────────────────────────────────
               _buildLabel('Username'),
               const SizedBox(height: 8),
-              _buildTextField(hint: 'slimut69'),
+              _buildTextField(
+                hint: 'slimut69',
+                controller: _usernameController,
+              ),
 
               const SizedBox(height: 18),
 
@@ -95,6 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _buildLabel('Email  Address'),
               const SizedBox(height: 8),
               _buildTextField(
+                  controller: _emailController,
                   hint: 'user@example.com',
                   keyboardType: TextInputType.emailAddress),
 
@@ -110,8 +178,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: _passwordDecoration(
                   hint: '••••••••••••••',
                   isObscure: _obscurePassword,
@@ -145,8 +217,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: _passwordDecoration(
                   hint: '••••••••••••••',
                   isObscure: _obscureConfirmPassword,
@@ -202,14 +278,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _isLoading ? null : _signUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5B21B6),
                     shape: RoundedRectangleBorder(
@@ -291,11 +360,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // ── Helper: Standard TextField ───────────────────────────────────────────
   Widget _buildTextField({
     required String hint,
+    TextEditingController? controller,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
+      controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+      style: const TextStyle(
+          fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(
@@ -311,8 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -332,13 +403,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         color: Color(0xFFD1D5DB),
         fontSize: 14,
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       suffixIcon: IconButton(
         icon: Icon(
-          isObscure
-              ? Icons.visibility_off_outlined
-              : Icons.visibility_outlined,
+          isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
           color: const Color(0xFF9CA3AF),
           size: 20,
         ),
@@ -350,8 +418,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide:
-            const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
       ),
       filled: true,
       fillColor: Colors.white,

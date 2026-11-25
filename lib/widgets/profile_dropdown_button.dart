@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/auth/data/auth_profile_repository.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -262,15 +263,26 @@ class ProfileDropdownButton extends StatelessWidget {
                     const SizedBox(width: 14),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(dialogContext);
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                            (route) => false,
-                          );
+                          try {
+                            await AuthProfileRepository().signOut();
+                            if (context.mounted) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            }
+                          } catch (error) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(error.toString())),
+                              );
+                            }
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE53935),
@@ -301,4 +313,3 @@ class ProfileDropdownButton extends StatelessWidget {
     );
   }
 }
-
