@@ -103,21 +103,21 @@ class SearchScreen extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Recently played songs
-              _RecentlyPlayedSong(
+              const _RecentlyPlayedSong(
                 title: 'Setsunarensa',
                 artist: 'RADWIMPS',
                 coverImage:
                     'assets/images/covers/setsunarensa_cover.jpg',
               ),
               const SizedBox(height: 12),
-              _RecentlyPlayedSong(
+              const _RecentlyPlayedSong(
                 title: 'Under Blue',
                 artist: 'Eve',
                 coverImage:
                     'assets/images/covers/under_blue_cover.jpg',
               ),
               const SizedBox(height: 12),
-              _RecentlyPlayedSong(
+              const _RecentlyPlayedSong(
                 title: 'Dramaturgy',
                 artist: 'Eve',
                 coverImage: 'assets/images/covers/dramaturgy_cover.jpg',
