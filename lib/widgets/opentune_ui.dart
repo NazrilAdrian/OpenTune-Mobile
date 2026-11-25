@@ -137,15 +137,32 @@ class SongCover extends StatelessWidget {
       height: height,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
-        child: Image.asset(
-          coverImage,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return _placeholder();
-          },
-        ),
+        child: _imageProvider(coverImage),
       ),
     );
+  }
+
+  Widget _imageProvider(String source) {
+    final uri = Uri.tryParse(source);
+    final isNetwork =
+        uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
+    Widget loading(
+            BuildContext context, Widget child, ImageChunkEvent? progress) =>
+        progress == null ? child : _placeholder();
+    Widget error(BuildContext context, Object error, StackTrace? stack) =>
+        _placeholder();
+    return isNetwork
+        ? Image.network(source,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            loadingBuilder: loading,
+            errorBuilder: error)
+        : Image.asset(source,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            errorBuilder: error);
   }
 }
 
@@ -180,6 +197,8 @@ class WireframeTextField extends StatelessWidget {
   final String label;
   final String hint;
   final String? initialValue;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
   final int maxLines;
 
   const WireframeTextField({
@@ -187,6 +206,8 @@ class WireframeTextField extends StatelessWidget {
     required this.label,
     required this.hint,
     this.initialValue,
+    this.controller,
+    this.validator,
     this.maxLines = 1,
   });
 
@@ -206,6 +227,8 @@ class WireframeTextField extends StatelessWidget {
         const SizedBox(height: 7),
         TextFormField(
           initialValue: initialValue,
+          controller: controller,
+          validator: validator,
           maxLines: maxLines,
           style: const TextStyle(
             color: OpenTuneColors.text,

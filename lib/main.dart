@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:audio_service/audio_service.dart';
 import 'core/network/supabase_config.dart';
+import 'core/services/audio_handler.dart';
 import 'features/auth/screens/auth_gate.dart';
 
 Future<void> main() async {
@@ -9,6 +11,16 @@ Future<void> main() async {
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
     publishableKey: SupabaseConfig.supabaseAnonKey,
+  );
+
+  openTuneAudioHandler = await AudioService.init(
+    builder: OpenTuneAudioHandler.new,
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.example.opentunemobile.audio',
+      androidNotificationChannelName: 'OpenTune Playback',
+      androidNotificationOngoing: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+    ),
   );
 
   runApp(const MyApp());

@@ -1,25 +1,46 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:audio_service/audio_service.dart';
+import 'package:just_audio/just_audio.dart';
 
+import '../../core/services/audio_handler.dart';
 import '../../widgets/opentune_ui.dart';
-import '../../widgets/player_state.dart';
 
 class FullScreenPlayerScreen extends StatefulWidget {
   const FullScreenPlayerScreen({super.key});
 
   @override
-  State<FullScreenPlayerScreen> createState() =>
-      _FullScreenPlayerScreenState();
+  State<FullScreenPlayerScreen> createState() => _FullScreenPlayerScreenState();
 }
 
 class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
   bool _isLiked = false;
 
-  static const double _duration = 222;
+  Future<void> _showQueue() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+          child: ListView(
+        shrinkWrap: true,
+        children: openTuneAudioHandler.queue.value
+            .asMap()
+            .entries
+            .map((entry) => ListTile(
+                  title: Text(entry.value.title),
+                  subtitle: Text(entry.value.artist ?? ''),
+                  onTap: () {
+                    Navigator.pop(context);
+                    openTuneAudioHandler.skipToQueueItem(entry.key);
+                  },
+                ))
+            .toList(),
+      )),
+    );
+  }
 
-  String _formatTime(double seconds) {
-    final int totalSeconds = seconds.floor();
+  String _formatTime(Duration duration) {
+    final int totalSeconds = duration.inSeconds;
     final int minutes = totalSeconds ~/ 60;
     final int remainingSeconds = totalSeconds % 60;
 
@@ -88,15 +109,7 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Antrean lagu belum tersedia.',
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _showQueue,
                         icon: const Icon(
                           Icons.queue_music_rounded,
                           size: 25,
@@ -117,22 +130,28 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final double coverSize = math.min(
-                      constraints.maxWidth - 48,
-                      constraints.maxHeight - 220,
-                    ).clamp(160.0, 310.0).toDouble();
+                    final double coverSize = math
+                        .min(
+                          constraints.maxWidth - 48,
+                          constraints.maxHeight - 220,
+                        )
+                        .clamp(160.0, 310.0)
+                        .toDouble();
 
                     return Column(
                       children: [
                         // Cover berada di tengah ruang yang tersedia.
                         Expanded(
                           child: Center(
-                            child: SongCover(
-                              coverImage:
-                                  'assets/images/covers/setsunarensa_cover.jpg',
-                              width: coverSize,
-                              height: coverSize,
-                              radius: 14,
+                            child: StreamBuilder<MediaItem?>(
+                              stream: openTuneAudioHandler.mediaItem,
+                              builder: (context, snapshot) => SongCover(
+                                coverImage: snapshot.data?.artUri?.toString() ??
+                                    'assets/images/covers/setsunarensa_cover.jpg',
+                                width: coverSize,
+                                height: coverSize,
+                                radius: 14,
+                              ),
                             ),
                           ),
                         ),
@@ -151,32 +170,36 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                               // Judul lagu dan tombol favorit.
                               Row(
                                 children: [
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Setsunarensa',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w700,
-                                            color: OpenTuneColors.text,
-                                            letterSpacing: -0.5,
+                                  Expanded(
+                                    child: StreamBuilder<MediaItem?>(
+                                      stream: openTuneAudioHandler.mediaItem,
+                                      builder: (context, snapshot) => Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            snapshot.data?.title ??
+                                                'Pilih lagu',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                              color: OpenTuneColors.text,
+                                              letterSpacing: -0.5,
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(
-                                          'RADWIMPS',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w400,
-                                            color: OpenTuneColors.muted,
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            snapshot.data?.artist ?? '',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w400,
+                                              color: OpenTuneColors.muted,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   IconButton(
@@ -201,68 +224,89 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                               const SizedBox(height: 12),
 
                               // Progress lagu.
-                              ValueListenableBuilder<double>(
-                                valueListenable: openTuneProgress,
-                                builder: (context, progress, child) {
-                                  final double safeProgress =
-                                      progress.clamp(0.0, 1.0);
+                              StreamBuilder<Duration>(
+                                stream:
+                                    openTuneAudioHandler.player.positionStream,
+                                builder: (context, positionSnapshot) {
+                                  return StreamBuilder<Duration?>(
+                                    stream: openTuneAudioHandler
+                                        .player.durationStream,
+                                    builder: (context, durationSnapshot) {
+                                      final duration = durationSnapshot.data ??
+                                          Duration.zero;
+                                      final position = positionSnapshot.data ??
+                                          Duration.zero;
+                                      final safeProgress =
+                                          duration.inMilliseconds == 0
+                                              ? 0.0
+                                              : (position.inMilliseconds /
+                                                      duration.inMilliseconds)
+                                                  .clamp(0.0, 1.0);
 
-                                  return Column(
-                                    children: [
-                                      SliderTheme(
-                                        data: SliderTheme.of(context).copyWith(
-                                          trackHeight: 3,
-                                          thumbShape:
-                                              const RoundSliderThumbShape(
-                                            enabledThumbRadius: 5,
-                                          ),
-                                          overlayShape:
-                                              const RoundSliderOverlayShape(
-                                            overlayRadius: 12,
-                                          ),
-                                          activeTrackColor:
-                                              OpenTuneColors.purple,
-                                          inactiveTrackColor:
-                                              const Color(0xFFE6E6EB),
-                                          thumbColor: OpenTuneColors.purple,
-                                        ),
-                                        child: Slider(
-                                          value: safeProgress,
-                                          onChanged: (value) {
-                                            openTuneProgress.value = value;
-                                          },
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              _formatTime(
-                                                _duration * safeProgress,
+                                      return Column(
+                                        children: [
+                                          SliderTheme(
+                                            data: SliderTheme.of(context)
+                                                .copyWith(
+                                              trackHeight: 3,
+                                              thumbShape:
+                                                  const RoundSliderThumbShape(
+                                                enabledThumbRadius: 5,
                                               ),
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w400,
-                                                color: OpenTuneColors.muted,
+                                              overlayShape:
+                                                  const RoundSliderOverlayShape(
+                                                overlayRadius: 12,
                                               ),
+                                              activeTrackColor:
+                                                  OpenTuneColors.purple,
+                                              inactiveTrackColor:
+                                                  const Color(0xFFE6E6EB),
+                                              thumbColor: OpenTuneColors.purple,
                                             ),
-                                            Text(
-                                              _formatTime(_duration),
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w400,
-                                                color: OpenTuneColors.muted,
-                                              ),
+                                            child: Slider(
+                                              value: safeProgress,
+                                              onChanged: duration ==
+                                                      Duration.zero
+                                                  ? null
+                                                  : (value) => openTuneAudioHandler
+                                                      .seek(Duration(
+                                                          milliseconds:
+                                                              (duration.inMilliseconds *
+                                                                      value)
+                                                                  .round())),
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  _formatTime(position),
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: OpenTuneColors.muted,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  _formatTime(duration),
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: OpenTuneColors.muted,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   );
                                 },
                               ),
@@ -270,34 +314,32 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                               const SizedBox(height: 10),
 
                               // Tombol kontrol pemutar.
-                              ValueListenableBuilder<bool>(
-                                valueListenable: openTuneIsPlaying,
-                                builder: (context, isPlaying, child) {
+                              StreamBuilder<PlaybackState>(
+                                stream: openTuneAudioHandler.playbackState,
+                                builder: (context, snapshot) {
+                                  final isPlaying =
+                                      snapshot.data?.playing ?? false;
                                   return Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       IconButton(
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Mode acak belum tersedia.',
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        icon: const Icon(
-                                          Icons.shuffle_rounded,
-                                        ),
+                                        onPressed: () => openTuneAudioHandler
+                                            .setShuffleMode(openTuneAudioHandler
+                                                    .player.shuffleModeEnabled
+                                                ? AudioServiceShuffleMode.none
+                                                : AudioServiceShuffleMode.all),
+                                        icon: Icon(Icons.shuffle_rounded,
+                                            color: openTuneAudioHandler
+                                                    .player.shuffleModeEnabled
+                                                ? OpenTuneColors.purple
+                                                : OpenTuneColors.muted),
                                         iconSize: 21,
                                         color: OpenTuneColors.muted,
                                       ),
                                       IconButton(
-                                        onPressed: () {
-                                          openTuneProgress.value = 0;
-                                        },
+                                        onPressed:
+                                            openTuneAudioHandler.skipToPrevious,
                                         icon: const Icon(
                                           Icons.skip_previous_rounded,
                                         ),
@@ -305,9 +347,9 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                                         color: OpenTuneColors.text,
                                       ),
                                       GestureDetector(
-                                        onTap: () {
-                                          openTuneIsPlaying.value = !isPlaying;
-                                        },
+                                        onTap: () => isPlaying
+                                            ? openTuneAudioHandler.pause()
+                                            : openTuneAudioHandler.play(),
                                         child: Container(
                                           width: 62,
                                           height: 62,
@@ -341,9 +383,8 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                                         ),
                                       ),
                                       IconButton(
-                                        onPressed: () {
-                                          openTuneProgress.value = 0;
-                                        },
+                                        onPressed:
+                                            openTuneAudioHandler.skipToNext,
                                         icon: const Icon(
                                           Icons.skip_next_rounded,
                                         ),
@@ -351,19 +392,22 @@ class _FullScreenPlayerScreenState extends State<FullScreenPlayerScreen> {
                                         color: OpenTuneColors.text,
                                       ),
                                       IconButton(
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Mode ulang belum tersedia.',
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        icon: const Icon(
-                                          Icons.repeat_rounded,
-                                        ),
+                                        onPressed: () =>
+                                            openTuneAudioHandler.setRepeatMode(
+                                                switch (openTuneAudioHandler
+                                                    .player.loopMode) {
+                                          LoopMode.off =>
+                                            AudioServiceRepeatMode.all,
+                                          LoopMode.all =>
+                                            AudioServiceRepeatMode.one,
+                                          _ => AudioServiceRepeatMode.none
+                                        }),
+                                        icon: Icon(Icons.repeat_rounded,
+                                            color: openTuneAudioHandler
+                                                        .player.loopMode ==
+                                                    LoopMode.off
+                                                ? OpenTuneColors.muted
+                                                : OpenTuneColors.purple),
                                         iconSize: 21,
                                         color: OpenTuneColors.muted,
                                       ),

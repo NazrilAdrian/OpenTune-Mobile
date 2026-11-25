@@ -18,6 +18,26 @@ class AlbumRepository {
     return _albums(rows);
   }
 
+  Future<int?> findOwnedAlbumId({
+    required String name,
+    required int artistId,
+    required String userId,
+  }) async {
+    requireUserId(userId);
+    final rows = await SupabaseConfig.client
+        .from(_table)
+        .select('album_id')
+        .eq('user_id', userId)
+        .eq('artist_id', artistId)
+        .ilike('name', escapeIlike(name.trim()))
+        .limit(2);
+    if (rows.length > 1) {
+      throw StateError(
+          'Nama album cocok dengan lebih dari satu album milik Anda.');
+    }
+    return rows.isEmpty ? null : (rows.single['album_id'] as num).toInt();
+  }
+
   Future<List<AlbumModel>> searchAlbums(String query) async {
     final term = query.trim();
     if (term.isEmpty) return [];
@@ -25,13 +45,15 @@ class AlbumRepository {
     final artistRows = await client
         .from('artists')
         .select('artist_id')
-        .ilike('name', '%$term%');
+        .ilike('name', '%${escapeIlike(term)}%')
+        .limit(100);
     final byName = await client
         .from(_table)
         .select(_selection)
         .ilike('name', '%${escapeIlike(term)}%')
         .order('created_at', ascending: false)
-        .order('album_id', ascending: true);
+        .order('album_id', ascending: true)
+        .limit(30);
     final byArtist = artistRows.isEmpty
         ? <dynamic>[]
         : await client
@@ -40,7 +62,8 @@ class AlbumRepository {
             .inFilter(
                 'artist_id', artistRows.map((row) => row['artist_id']).toList())
             .order('created_at', ascending: false)
-            .order('album_id', ascending: true);
+            .order('album_id', ascending: true)
+            .limit(30);
     final rowsById = <int, Map<String, dynamic>>{};
     for (final row in [...byName, ...byArtist]) {
       rowsById[(row['album_id'] as num).toInt()] =
@@ -54,7 +77,36 @@ class AlbumRepository {
             ? byDate
             : (a['album_id'] as num).compareTo(b['album_id'] as num);
       });
-    return _albums(rows);
+    return _albums(rows.take(30).toList());
+  }
+
+  Future<List<({AlbumModel album, List<SongModel> songs})>>
+      getOwnedAlbumsWithSongs(String userId) async {
+    requireUserId(userId);
+    final albums = await SupabaseConfig.client
+        .from(_table)
+        .select(_selection)
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .order('album_id', ascending: true);
+    final result = <({AlbumModel album, List<SongModel> songs})>[];
+    for (final row in albums) {
+      final album = AlbumModel.fromJson(Map<String, dynamic>.from(row));
+      final songs = await SupabaseConfig.client
+          .from('songs')
+          .select('*, artists(name), albums(name, cover_path), genres(name)')
+          .eq('album_id', album.albumId)
+          .eq('user_id', userId)
+          .order('track_number', ascending: true)
+          .order('song_id', ascending: true);
+      result.add((
+        album: album,
+        songs: songs
+            .map((song) => SongModel.fromJson(Map<String, dynamic>.from(song)))
+            .toList(),
+      ));
+    }
+    return result;
   }
 
   Future<AlbumModel> createAlbum(Map<String, dynamic> data) async {
