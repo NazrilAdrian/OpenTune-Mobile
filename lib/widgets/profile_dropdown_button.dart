@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../features/auth/data/auth_profile_repository.dart';
+import '../features/profile/data/models/user_model.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -10,7 +11,7 @@ enum CurrentScreenType {
   accountSetting,
 }
 
-class ProfileDropdownButton extends StatelessWidget {
+class ProfileDropdownButton extends StatefulWidget {
   final double size;
   final CurrentScreenType currentScreen;
 
@@ -19,6 +20,77 @@ class ProfileDropdownButton extends StatelessWidget {
     this.size = 40,
     this.currentScreen = CurrentScreenType.home,
   });
+
+  @override
+  State<ProfileDropdownButton> createState() => _ProfileDropdownButtonState();
+}
+
+class _ProfileDropdownButtonState extends State<ProfileDropdownButton> {
+  final _repository = AuthProfileRepository();
+  late Future<UserModel?> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _repository.getCurrentProfile();
+  }
+
+  void _refreshProfile() {
+    if (!mounted) return;
+    setState(() {
+      _profileFuture = _repository.getCurrentProfile();
+    });
+  }
+
+  Widget _buildAvatar() {
+    return FutureBuilder<UserModel?>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        final profile = snapshot.data;
+        final imageUrl = profile?.profilePicture;
+        if (imageUrl == null || imageUrl.isEmpty) {
+          return _buildInitialAvatar(profile?.username);
+        }
+
+        return ClipOval(
+          child: Image.network(
+            imageUrl,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                _buildInitialAvatar(profile?.username),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInitialAvatar(String? username) {
+    final trimmedUsername = username?.trim() ?? '';
+    final initial = trimmedUsername.isEmpty
+        ? '?'
+        : trimmedUsername.substring(0, 1).toUpperCase();
+
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: Color(0xFFE9D5FF),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: Color(0xFF5634EC),
+          fontSize: widget.size * 0.48,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'Poppins',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,70 +103,72 @@ class ProfileDropdownButton extends StatelessWidget {
       color: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 8,
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value == 'logout') {
           _showConfirmLogoutDialog(context);
         } else if (value == 'profile') {
-          if (currentScreen == CurrentScreenType.profile) {
+          if (widget.currentScreen == CurrentScreenType.profile) {
             // Already on profile
             return;
           }
-          if (currentScreen == CurrentScreenType.accountSetting) {
-            Navigator.pushReplacement(
+          if (widget.currentScreen == CurrentScreenType.accountSetting) {
+            await Navigator.pushReplacement<void, void>(
               context,
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             );
           } else {
-            Navigator.push(
+            await Navigator.push<void>(
               context,
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             );
           }
+          _refreshProfile();
         } else if (value == 'account_setting') {
-          if (currentScreen == CurrentScreenType.accountSetting) {
-            // Already on account setting
+          if (widget.currentScreen == CurrentScreenType.accountSetting) {
             return;
           }
-          if (currentScreen == CurrentScreenType.profile) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-            );
+          final updated = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+          );
+          if (updated == true) {
+            _refreshProfile();
           }
         }
       },
       itemBuilder: (context) => [
         // ── Header: Name & Account Type ──
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           enabled: false,
           padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Alexander The Great',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0F0F1A),
-                  fontFamily: 'Poppins',
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Standar Account',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF9CA3AF),
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
+          child: FutureBuilder<UserModel?>(
+            future: _profileFuture,
+            builder: (context, snapshot) {
+              final profile = snapshot.data;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile?.username ?? 'OpenTune User',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F0F1A),
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    profile?.role ?? 'Account',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF9CA3AF),
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         const PopupMenuDivider(height: 1),
@@ -159,12 +233,7 @@ class ProfileDropdownButton extends StatelessWidget {
         ),
       ],
       child: ClipOval(
-        child: Image.asset(
-          'assets/images/profile_picture.jpg',
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-        ),
+        child: _buildAvatar(),
       ),
     );
   }

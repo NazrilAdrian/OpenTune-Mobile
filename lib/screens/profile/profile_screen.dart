@@ -96,6 +96,29 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _repo = AuthProfileRepository();
+  int _profileRefreshKey = 0;
+
+  Widget _buildInitialAvatar(String username) {
+    final trimmedUsername = username.trim();
+    final initial = trimmedUsername.isEmpty
+        ? '?'
+        : trimmedUsername.substring(0, 1).toUpperCase();
+    return Container(
+      width: 88,
+      height: 88,
+      alignment: Alignment.center,
+      color: const Color(0xFFE9D5FF),
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: Color(0xFF5634EC),
+          fontSize: 44,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'Poppins',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,10 +169,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16),
             child: ProfileDropdownButton(
+              key: ValueKey(_profileRefreshKey),
               size: 38,
               currentScreen: CurrentScreenType.profile,
             ),
@@ -220,30 +244,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: ClipOval(
                             child: user.profilePicture == null
-                                ? Container(
-                                    width: 88,
-                                    height: 88,
-                                    color: const Color(0xFFE9D5FF),
-                                    child: const Icon(
-                                      Icons.person,
-                                      size: 44,
-                                      color: Color(0xFF5634EC),
-                                    ),
-                                  )
+                                ? _buildInitialAvatar(user.username)
                                 : Image.network(
                                     user.profilePicture!,
                                     width: 88,
                                     height: 88,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(
-                                      width: 88,
-                                      height: 88,
-                                      color: const Color(0xFFE9D5FF),
-                                      child: const Icon(
-                                        Icons.person,
-                                        size: 44,
-                                        color: Color(0xFF5634EC),
-                                      ),
+                                      child: _buildInitialAvatar(user.username),
                                     ),
                                   ),
                           ),
@@ -275,13 +283,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const SizedBox(height: 12),
                               ElevatedButton(
                                 onPressed: () async {
-                                  await Navigator.push<bool>(
+                                  final profileUpdated =
+                                      await Navigator.push<bool>(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => const EditProfileScreen(),
                                     ),
                                   );
-                                  if (mounted) setState(() {});
+                                  if (!mounted) return;
+                                  setState(() {
+                                    if (profileUpdated == true) {
+                                      _profileRefreshKey++;
+                                    }
+                                  });
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF5634EC),

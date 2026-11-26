@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/auth/data/auth_profile_repository.dart';
 import '../../navigation/custom_navbar.dart';
+import '../admin/admin_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,8 +17,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _rememberMe = true;
+  bool _rememberMe = false;
   bool _isLoading = false;
+  bool _isSendingReset = false;
 
   @override
   void dispose() {
@@ -38,12 +41,33 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute<void>(builder: (_) => const CustomNavbar()),
+
+      final profile = await _repo.getCurrentProfile();
+      if (!mounted) return;
+      if (profile == null) {
+        throw StateError('Profil akun tidak ditemukan.');
+      }
+
+      final Widget destination = profile.role.toLowerCase() == 'admin'
+          ? const AdminScreen()
+          : const CustomNavbar();
+      Navigator.of(context).pushAndRemoveUntil<void>(
+        MaterialPageRoute<void>(builder: (_) => destination),
+        (route) => false,
       );
     } catch (error) {
-      if (mounted) _showMessage(error.toString());
+      if (!mounted) return;
+      if (error is AuthException) {
+        final message = error.message.toLowerCase();
+        if (message.contains('invalid login credentials') ||
+            message.contains('username tidak ditemukan')) {
+          _showMessage('Email/username atau password salah.');
+        } else {
+          _showMessage(error.message);
+        }
+      } else {
+        _showMessage(error.toString());
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -53,6 +77,100 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  Future<void> _requestPasswordReset() async {
+    final emailController = TextEditingController(
+      text: _identifierController.text.contains('@')
+          ? _identifierController.text.trim()
+          : '',
+    );
+    final email = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Reset password',
+          style: TextStyle(
+            color: Color(0xFF0F0F1A),
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: TextField(
+          controller: emailController,
+          autofocus: true,
+          keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(
+            color: Color(0xFF0F0F1A),
+            fontFamily: 'Poppins',
+            fontSize: 14,
+          ),
+          decoration: InputDecoration(
+            labelText: 'Email address',
+            hintText: 'you@example.com',
+            labelStyle: const TextStyle(color: Color(0xFF6B7280)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide:
+                  const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, emailController.text.trim()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5B21B6),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
+            child: const Text('Send link'),
+          ),
+        ],
+      ),
+    );
+    emailController.dispose();
+
+    if (email == null) return;
+    if (!email.contains('@')) {
+      _showMessage('Masukkan alamat email yang valid.');
+      return;
+    }
+
+    setState(() => _isSendingReset = true);
+    try {
+      await _repo.sendPasswordResetEmail(
+        email: email,
+        redirectTo: Uri.base.origin,
+      );
+      if (mounted) {
+        _showMessage(
+          'Jika email terdaftar, tautan reset password sudah dikirim. Cek inbox dan spam.',
+        );
+      }
+    } catch (error) {
+      if (mounted) _showMessage('Gagal mengirim tautan reset: $error');
+    } finally {
+      if (mounted) setState(() => _isSendingReset = false);
+    }
   }
 
   @override
@@ -242,6 +360,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Checkbox(
                           value: _rememberMe,
                           activeColor: const Color(0xFF7C3AED),
+                          side: const BorderSide(
+                            color: Color(0xFF9CA3AF),
+                            width: 2,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -263,15 +385,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF7C3AED),
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: _isSendingReset ? null : _requestPasswordReset,
+                      child: Text(
+                        _isSendingReset ? 'Sending...' : 'Forgot Password?',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF7C3AED),
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
                     ),
                   ),
@@ -320,21 +445,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontFamily: 'Poppins',
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterScreen()),
-                        );
-                      },
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF7C3AED),
-                          fontFamily: 'Poppins',
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF7C3AED),
+                            fontFamily: 'Poppins',
+                          ),
                         ),
                       ),
                     ),

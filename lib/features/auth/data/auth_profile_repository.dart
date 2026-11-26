@@ -54,6 +54,22 @@ class AuthProfileRepository {
     await _client.auth.signOut();
   }
 
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    required String redirectTo,
+  }) async {
+    await _client.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: redirectTo,
+    );
+  }
+
+  Future<void> updatePassword(String password) async {
+    await _client.auth.updateUser(
+      UserAttributes(password: password),
+    );
+  }
+
   Future<UserModel?> getCurrentProfile() async {
     final currentUser = _client.auth.currentUser;
     if (currentUser == null) return null;

@@ -20,6 +20,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   XFile? _selectedImage;
   String? _currentAvatarUrl;
   bool _isLoading = true;
+  bool _isAvatarHovered = false;
+
+  Widget _buildAvatarFallback() {
+    final username = _usernameController.text.trim();
+    final initial =
+        username.isEmpty ? '?' : username.substring(0, 1).toUpperCase();
+    return Container(
+      width: 92,
+      height: 92,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: Color(0xFFE9D5FF),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: Color(0xFF5634EC),
+          fontSize: 42,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'Poppins',
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -49,7 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       source: ImageSource.gallery,
       imageQuality: 75,
     );
-    if (file != null) setState(() => _selectedImage = file);
+    if (file != null && mounted) setState(() => _selectedImage = file);
   }
 
   Future<void> _saveProfile() async {
@@ -66,7 +91,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (error) {
-      if (mounted) _showMessage(error.toString());
+      if (mounted) {
+        final message = error.toString().contains('Bucket not found')
+            ? 'Bucket avatars belum dibuat di Supabase Storage.'
+            : error.toString();
+        _showMessage(message);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -427,77 +457,89 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       children: [
                         // ── STACK WIDGET (Materi Dosen) ──────────────────────
                         // Stack digunakan untuk menumpuk ikon kamera di atas foto profil
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Layer 1: Avatar Bulat
-                            ClipOval(
-                              child: _selectedImage == null
-                                  ? (_currentAvatarUrl == null
-                                      ? Container(
-                                          width: 92,
-                                          height: 92,
-                                          color: const Color(0xFFE9D5FF),
-                                          child: const Icon(
-                                            Icons.person,
-                                            size: 42,
-                                            color: Color(0xFF5634EC),
-                                          ),
-                                        )
-                                      : Image.network(
-                                          _currentAvatarUrl!,
-                                          width: 92,
-                                          height: 92,
-                                          fit: BoxFit.cover,
-                                        ))
-                                  : FutureBuilder<Uint8List>(
-                                      future: _selectedImage!.readAsBytes(),
-                                      builder: (context, snapshot) {
-                                        if (!snapshot.hasData) {
-                                          return const SizedBox(
-                                            width: 92,
-                                            height: 92,
-                                          );
-                                        }
-                                        return Image.memory(
-                                          snapshot.data!,
-                                          width: 92,
-                                          height: 92,
-                                          fit: BoxFit.cover,
-                                        );
-                                      },
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          onEnter: (_) =>
+                              setState(() => _isAvatarHovered = true),
+                          onExit: (_) =>
+                              setState(() => _isAvatarHovered = false),
+                          child: GestureDetector(
+                            onTap: _pickAvatar,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Layer 1: Avatar Bulat
+                                ClipOval(
+                                  child: _selectedImage == null
+                                      ? (_currentAvatarUrl == null
+                                          ? _buildAvatarFallback()
+                                          : Image.network(
+                                              _currentAvatarUrl!,
+                                              width: 92,
+                                              height: 92,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  _buildAvatarFallback(),
+                                            ))
+                                      : FutureBuilder<Uint8List>(
+                                          future: _selectedImage!.readAsBytes(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData) {
+                                              return const SizedBox(
+                                                width: 92,
+                                                height: 92,
+                                              );
+                                            }
+                                            return Image.memory(
+                                              snapshot.data!,
+                                              width: 92,
+                                              height: 92,
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        ),
+                                ),
+                                // Layer 2: Semi-transparent Overlay with Camera Icon
+                                Positioned.fill(
+                                  child: AnimatedOpacity(
+                                    opacity: _isAvatarHovered ? 1 : 0,
+                                    duration: const Duration(milliseconds: 150),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.2),
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt_outlined,
+                                        color: Colors.white,
+                                        size: 34,
+                                      ),
                                     ),
-                            ),
-                            // Layer 2: Semi-transparent Overlay with Camera Icon
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withValues(alpha: 0.2),
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt_outlined,
-                                  color: Colors.white,
-                                  size: 34,
-                                ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                         // ── END STACK WIDGET ─────────────────────────────────
 
                         const SizedBox(width: 18),
 
                         // Change Photo Button
-                        GestureDetector(
-                          onTap: _pickAvatar,
-                          child: const Text(
-                            'Change Photo',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF5634EC),
-                              fontFamily: 'Poppins',
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _pickAvatar,
+                            child: const Text(
+                              'Change Photo',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF5634EC),
+                                fontFamily: 'Poppins',
+                              ),
                             ),
                           ),
                         ),

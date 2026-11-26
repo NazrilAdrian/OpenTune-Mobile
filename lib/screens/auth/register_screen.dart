@@ -17,8 +17,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _agreeToTerms = true;
+  bool _agreeToTerms = false;
   bool _isLoading = false;
+
+  bool get _passwordMeetsMinimum => _passwordController.text.length >= 8;
+
+  bool get _passwordsMatch =>
+      _passwordMeetsMinimum &&
+      _confirmPasswordController.text.isNotEmpty &&
+      _passwordController.text == _confirmPasswordController.text;
 
   @override
   void dispose() {
@@ -152,7 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _buildLabel('Username'),
               const SizedBox(height: 8),
               _buildTextField(
-                hint: 'slimut69',
+                hint: 'e.g. musiclover123',
                 controller: _usernameController,
               ),
 
@@ -172,13 +179,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 children: [
                   _buildLabel('Password'),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.check, color: Color(0xFF7C3AED), size: 16),
+                  if (_passwordMeetsMinimum) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.check, color: Color(0xFF7C3AED), size: 16),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
+                onChanged: (_) => setState(() {}),
                 obscureText: _obscurePassword,
                 style: const TextStyle(
                     fontFamily: 'Poppins',
@@ -194,16 +204,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Must be at least 8 characters long. Include an uppercase letter and a number.',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF9CA3AF),
-                  fontFamily: 'Poppins',
-                  height: 1.4,
+              if (!_passwordMeetsMinimum) ...[
+                const SizedBox(height: 6),
+                const Text(
+                  'Must be at least 8 characters long.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF9CA3AF),
+                    fontFamily: 'Poppins',
+                    height: 1.4,
+                  ),
                 ),
-              ),
+              ],
 
               const SizedBox(height: 18),
 
@@ -211,13 +223,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 children: [
                   _buildLabel('Confirm Password'),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.check, color: Color(0xFF7C3AED), size: 16),
+                  if (_passwordsMatch) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.check, color: Color(0xFF7C3AED), size: 16),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _confirmPasswordController,
+                onChanged: (_) => setState(() {}),
                 obscureText: _obscureConfirmPassword,
                 style: const TextStyle(
                     fontFamily: 'Poppins',
@@ -246,6 +261,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Checkbox(
                       value: _agreeToTerms,
                       activeColor: const Color(0xFF7C3AED),
+                      side: const BorderSide(
+                        color: Color(0xFF9CA3AF),
+                        width: 2,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -313,22 +332,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontFamily: 'Poppins',
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF7C3AED),
+                            fontFamily: 'Poppins',
                           ),
-                        );
-                      },
-                      child: const Text(
-                        'Log In',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF7C3AED),
-                          fontFamily: 'Poppins',
                         ),
                       ),
                     ),

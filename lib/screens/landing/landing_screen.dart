@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
-import '../admin/admin_screen.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -109,7 +108,8 @@ class _LandingScreenState extends State<LandingScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+                            color:
+                                const Color(0xFF7C3AED).withValues(alpha: 0.08),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -136,7 +136,8 @@ class _LandingScreenState extends State<LandingScreen> {
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                   elevation: 1,
-                                  shadowColor: Colors.black.withValues(alpha: 0.08),
+                                  shadowColor:
+                                      Colors.black.withValues(alpha: 0.08),
                                 ),
                                 child: const Text(
                                   'Login',
@@ -173,7 +174,8 @@ class _LandingScreenState extends State<LandingScreen> {
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                   elevation: 2,
-                                  shadowColor: const Color(0xFF5634EC).withValues(alpha: 0.4),
+                                  shadowColor: const Color(0xFF5634EC)
+                                      .withValues(alpha: 0.4),
                                 ),
                                 child: const Text(
                                   'Sign up',
@@ -198,7 +200,8 @@ class _LandingScreenState extends State<LandingScreen> {
 
               // ── 2. Hero Content Section ───────────────────────────────────
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -253,7 +256,8 @@ class _LandingScreenState extends State<LandingScreen> {
                               borderRadius: BorderRadius.circular(50),
                             ),
                             elevation: 3,
-                            shadowColor: const Color(0xFF5634EC).withValues(alpha: 0.35),
+                            shadowColor:
+                                const Color(0xFF5634EC).withValues(alpha: 0.35),
                           ),
                           child: const Text(
                             'Get Started',
@@ -427,7 +431,8 @@ class _LandingScreenState extends State<LandingScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF5634EC).withValues(alpha: 0.35),
+                            color:
+                                const Color(0xFF5634EC).withValues(alpha: 0.35),
                             blurRadius: 18,
                             offset: const Offset(0, 8),
                           ),
@@ -460,7 +465,7 @@ class _LandingScreenState extends State<LandingScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const AdminScreen(),
+                                  builder: (_) => const RegisterScreen(),
                                 ),
                               );
                             },
