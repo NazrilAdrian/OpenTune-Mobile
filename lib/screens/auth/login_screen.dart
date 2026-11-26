@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../navigation/custom_navbar.dart';
 import 'register_screen.dart';
+import '../../core/network/supabase_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,6 +13,81 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = true;
+  bool _isLoading = false;
+
+  final TextEditingController _emailController = TextEditingController();
+
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email dan password wajib diisi.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await SupabaseConfig.client.auth.signInWithPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      final user = response.user;
+
+      if (user == null) {
+        throw Exception('Pengguna tidak ditemukan.');
+      }
+
+      if (!mounted) return;
+
+      final profile = await SupabaseConfig.client
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+      if (!mounted) return;
+
+      if (profile['role'] == 'admin') {
+        // Nanti kita arahkan ke halaman Admin.
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CustomNavbar(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CustomNavbar(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login gagal: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +174,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: InputDecoration(
                   hintText: 'Enter your email or username',
                   hintStyle: const TextStyle(
@@ -107,16 +187,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: 14,
                     fontFamily: 'Poppins',
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF7C3AED), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -140,16 +220,20 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF0F0F1A)),
+                style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF0F0F1A)),
                 decoration: InputDecoration(
                   hintText: '••••••••••••••',
                   hintStyle: const TextStyle(
                     color: Color(0xFFD1D5DB),
                     fontSize: 14,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -170,8 +254,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF7C3AED), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -238,8 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const CustomNavbar()),
+                      MaterialPageRoute(builder: (_) => const CustomNavbar()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/opentune_ui.dart';
+import '../../core/network/supabase_config.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -18,16 +19,46 @@ class _AdminScreenState extends State<AdminScreen> {
   String _adminPhone = '';
 
   final List<Map<String, dynamic>> _users = [
-    {'name': 'Alya Putri', 'email': 'alya@email.com', 'role': 'User', 'active': true},
-    {'name': 'Raka Pratama', 'email': 'raka@email.com', 'role': 'User', 'active': true},
-    {'name': 'Nazla Admin', 'email': 'nazla@admin.com', 'role': 'Admin', 'active': true},
+    {
+      'name': 'Alya Putri',
+      'email': 'alya@email.com',
+      'role': 'User',
+      'active': true
+    },
+    {
+      'name': 'Raka Pratama',
+      'email': 'raka@email.com',
+      'role': 'User',
+      'active': true
+    },
+    {
+      'name': 'Nazla Admin',
+      'email': 'nazla@admin.com',
+      'role': 'Admin',
+      'active': true
+    },
   ];
 
   final List<Map<String, String>> _songs = [
-    {'title': 'Setsunarensa', 'artist': 'Radwimps', 'album': 'Your Name', 'genre': 'Pop'},
+    {
+      'title': 'Setsunarensa',
+      'artist': 'Radwimps',
+      'album': 'Your Name',
+      'genre': 'Pop'
+    },
     {'title': 'Dramaturgy', 'artist': 'Eve', 'album': '文化', 'genre': 'Rock'},
-    {'title': 'Starlight Parade', 'artist': 'Sekai No Owari', 'album': 'Tree', 'genre': 'Pop'},
-    {'title': 'Saikai', 'artist': 'Vaundy', 'album': 'Replica', 'genre': 'Indie'},
+    {
+      'title': 'Starlight Parade',
+      'artist': 'Sekai No Owari',
+      'album': 'Tree',
+      'genre': 'Pop'
+    },
+    {
+      'title': 'Saikai',
+      'artist': 'Vaundy',
+      'album': 'Replica',
+      'genre': 'Indie'
+    },
   ];
 
   final List<Map<String, String>> _albums = [
@@ -42,12 +73,8 @@ class _AdminScreenState extends State<AdminScreen> {
     {'name': 'Vaundy', 'genre': 'Pop', 'country': 'Jepang'},
   ];
 
-  final List<Map<String, String>> _genres = [
-    {'name': 'Pop', 'description': 'Musik populer'},
-    {'name': 'Rock', 'description': 'Musik dengan karakter gitar kuat'},
-    {'name': 'Indie', 'description': 'Musik independen'},
-    {'name': 'R&B', 'description': 'Rhythm and blues'},
-  ];
+  List<Map<String, dynamic>> _genres = [];
+  bool _isLoadingGenres = true;
 
   void _message(String text) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -112,10 +139,12 @@ class _AdminScreenState extends State<AdminScreen> {
             child: const Text('Batal'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: OpenTuneColors.purple),
+            style:
+                FilledButton.styleFrom(backgroundColor: OpenTuneColors.purple),
             onPressed: () {
               if (key.currentState!.validate()) {
-                Navigator.pop(ctx, controllers.map((c) => c.text.trim()).toList());
+                Navigator.pop(
+                    ctx, controllers.map((c) => c.text.trim()).toList());
               }
             },
             child: const Text('Simpan'),
@@ -140,7 +169,8 @@ class _AdminScreenState extends State<AdminScreen> {
         title: const Text('Konfirmasi hapus'),
         content: Text('Yakin ingin menghapus $label dari daftar contoh?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -174,6 +204,36 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _fetchGenres();
+  }
+
+  Future<void> _fetchGenres() async {
+    try {
+      final response = await SupabaseConfig.client
+          .from('genres')
+          .select()
+          .order('id', ascending: true);
+
+      if (!mounted) return;
+
+      setState(() {
+        _genres = List<Map<String, dynamic>>.from(response);
+        _isLoadingGenres = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingGenres = false;
+      });
+
+      _message('Gagal mengambil data genre: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     const titles = [
       'Dashboard Admin',
@@ -191,10 +251,11 @@ class _AdminScreenState extends State<AdminScreen> {
         surfaceTintColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: OpenTuneColors.text),
+          icon:
+              const Icon(Icons.arrow_back_rounded, color: OpenTuneColors.text),
           onPressed: () => Navigator.maybePop(context),
           tooltip: 'Kembali',
-        ),    
+        ),
         title: Row(
           children: [
             Image.asset(
@@ -334,7 +395,6 @@ class _AdminScreenState extends State<AdminScreen> {
         data: NavigationBarThemeData(
           backgroundColor: Colors.white,
           indicatorColor: OpenTuneColors.purplePale,
-
           iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
             (states) {
               if (states.contains(WidgetState.selected)) {
@@ -347,7 +407,6 @@ class _AdminScreenState extends State<AdminScreen> {
               );
             },
           ),
-
           labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
             (states) {
               if (states.contains(WidgetState.selected)) {
@@ -365,7 +424,6 @@ class _AdminScreenState extends State<AdminScreen> {
             },
           ),
         ),
-
         child: NavigationBar(
           selectedIndex: _tab,
           onDestinationSelected: _selectTab,
@@ -415,11 +473,15 @@ class _AdminScreenState extends State<AdminScreen> {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 30),
+                Icon(Icons.admin_panel_settings_rounded,
+                    color: Colors.white, size: 30),
                 SizedBox(height: 12),
                 Text(
                   'Selamat datang, Admin!',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800),
                 ),
                 SizedBox(height: 5),
                 Text(
@@ -438,23 +500,34 @@ class _AdminScreenState extends State<AdminScreen> {
             mainAxisSpacing: 12,
             childAspectRatio: 1.45,
             children: [
-              _stat('Total Pengguna', '${_users.length}', Icons.people_alt_outlined),
+              _stat('Total Pengguna', '${_users.length}',
+                  Icons.people_alt_outlined),
               _stat('Total Lagu', '${_songs.length}', Icons.music_note_rounded),
               _stat('Total Album', '${_albums.length}', Icons.album_outlined),
-              _stat('Total Artis', '${_artists.length}', Icons.mic_none_rounded),
+              _stat(
+                  'Total Artis', '${_artists.length}', Icons.mic_none_rounded),
               _stat('Total Genre', '${_genres.length}', Icons.category_rounded),
-              _stat('Pengguna Nonaktif', '${_users.where((u) => u['active'] != true).length}', Icons.person_off_outlined),
+              _stat(
+                  'Pengguna Nonaktif',
+                  '${_users.where((u) => u['active'] != true).length}',
+                  Icons.person_off_outlined),
             ],
           ),
           const SizedBox(height: 22),
           const Text(
             'Akses cepat',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: OpenTuneColors.text),
+            style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: OpenTuneColors.text),
           ),
           const SizedBox(height: 10),
-          _quick(Icons.people_outline, 'Kelola pengguna', 'Lihat role dan status akun', () => _selectTab(1)),
-          _quick(Icons.library_music_outlined, 'Kelola katalog', 'Lagu, album, dan artis', () => _selectTab(2)),
-          _quick(Icons.category_outlined, 'Kelola genre', 'Tambah, ubah, atau hapus genre', () => _selectTab(3)),
+          _quick(Icons.people_outline, 'Kelola pengguna',
+              'Lihat role dan status akun', () => _selectTab(1)),
+          _quick(Icons.library_music_outlined, 'Kelola katalog',
+              'Lagu, album, dan artis', () => _selectTab(2)),
+          _quick(Icons.category_outlined, 'Kelola genre',
+              'Tambah, ubah, atau hapus genre', () => _selectTab(3)),
           const SizedBox(height: 8),
           const Text(
             'Data pada halaman ini adalah data dummy untuk simulasi UI/UX.',
@@ -477,14 +550,21 @@ class _AdminScreenState extends State<AdminScreen> {
             Icon(icon, color: OpenTuneColors.purple, size: 23),
             Text(
               value,
-              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: OpenTuneColors.text),
+              style: const TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w800,
+                  color: OpenTuneColors.text),
             ),
-            Text(label, style: const TextStyle(fontSize: 11, color: OpenTuneColors.muted)),
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 11, color: OpenTuneColors.muted)),
           ],
         ),
       );
 
-  Widget _quick(IconData icon, String title, String subtitle, VoidCallback onTap) => Card(
+  Widget _quick(
+          IconData icon, String title, String subtitle, VoidCallback onTap) =>
+      Card(
         color: Colors.white,
         elevation: 0,
         margin: const EdgeInsets.only(bottom: 9),
@@ -497,29 +577,43 @@ class _AdminScreenState extends State<AdminScreen> {
             backgroundColor: OpenTuneColors.purplePale,
             child: Icon(icon, color: OpenTuneColors.purple),
           ),
-          title: Text(title, style: const TextStyle(color: OpenTuneColors.text, fontWeight: FontWeight.w600)),
-          subtitle: Text(subtitle, style: const TextStyle(color: OpenTuneColors.muted, fontSize: 12)),
-          trailing: const Icon(Icons.chevron_right, color: OpenTuneColors.muted),
+          title: Text(title,
+              style: const TextStyle(
+                  color: OpenTuneColors.text, fontWeight: FontWeight.w600)),
+          subtitle: Text(subtitle,
+              style:
+                  const TextStyle(color: OpenTuneColors.muted, fontSize: 12)),
+          trailing:
+              const Icon(Icons.chevron_right, color: OpenTuneColors.muted),
           onTap: onTap,
         ),
       );
 
   Widget _userPage() {
     final items = _users
-        .where((u) => '${u['name']} ${u['email']} ${u['role']}'.toLowerCase().contains(_query.toLowerCase()))
+        .where((u) => '${u['name']} ${u['email']} ${u['role']}'
+            .toLowerCase()
+            .contains(_query.toLowerCase()))
         .toList();
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
         Row(
           children: [
-            Expanded(child: Text('${items.length} pengguna ditampilkan', style: const TextStyle(color: OpenTuneColors.muted))),
+            Expanded(
+                child: Text('${items.length} pengguna ditampilkan',
+                    style: const TextStyle(color: OpenTuneColors.muted))),
             FilledButton.icon(
               onPressed: () => _form(
                 title: 'Tambah pengguna',
                 labels: const ['Nama', 'Email', 'Role (User/Admin)'],
                 initial: const [],
-                onSave: (v) => _users.add({'name': v[0], 'email': v[1], 'role': v[2], 'active': true}),
+                onSave: (v) => _users.add({
+                  'name': v[0],
+                  'email': v[1],
+                  'role': v[2],
+                  'active': true
+                }),
               ),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Tambah'),
@@ -538,17 +632,33 @@ class _AdminScreenState extends State<AdminScreen> {
                   _form(
                     title: 'Edit pengguna',
                     labels: const ['Nama', 'Email', 'Role (User/Admin)'],
-                    initial: [user['name'] as String, user['email'] as String, user['role'] as String],
-                    onSave: (v) { user['name'] = v[0]; user['email'] = v[1]; user['role'] = v[2]; },
+                    initial: [
+                      user['name'] as String,
+                      user['email'] as String,
+                      user['role'] as String
+                    ],
+                    onSave: (v) {
+                      user['name'] = v[0];
+                      user['email'] = v[1];
+                      user['role'] = v[2];
+                    },
                   );
                 }
-                if (value == 'status') setState(() => user['active'] = user['active'] != true);
-                if (value == 'delete') _delete('pengguna ${user['name']}', () => _users.remove(user));
+                if (value == 'status')
+                  setState(() => user['active'] = user['active'] != true);
+                if (value == 'delete')
+                  _delete(
+                      'pengguna ${user['name']}', () => _users.remove(user));
               },
               itemBuilder: (_) => [
                 const PopupMenuItem(value: 'edit', child: Text('Edit data')),
-                PopupMenuItem(value: 'status', child: Text(user['active'] == true ? 'Nonaktifkan akun' : 'Aktifkan akun')),
-                const PopupMenuItem(value: 'delete', child: Text('Hapus pengguna')),
+                PopupMenuItem(
+                    value: 'status',
+                    child: Text(user['active'] == true
+                        ? 'Nonaktifkan akun'
+                        : 'Aktifkan akun')),
+                const PopupMenuItem(
+                    value: 'delete', child: Text('Hapus pengguna')),
               ],
             ),
             badge: user['active'] == true ? 'Aktif' : 'Nonaktif',
@@ -558,99 +668,129 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _catalogPage() => Column(
-    children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-        child: SegmentedButton<int>(
-          segments: const [
-            ButtonSegment(
-              value: 0,
-              label: Text('Lagu'),
-              icon: Icon(Icons.music_note_outlined),
-            ),
-            ButtonSegment(
-              value: 1,
-              label: Text('Album'),
-              icon: Icon(Icons.album_outlined),
-            ),
-            ButtonSegment(
-              value: 2,
-              label: Text('Artis'),
-              icon: Icon(Icons.mic_none_rounded),
-            ),
-          ],
-          selected: {_catalogTab},
-          onSelectionChanged: (selection) =>
-              setState(() => _catalogTab = selection.first),
-          showSelectedIcon: false,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+            child: SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(
+                  value: 0,
+                  label: Text('Lagu'),
+                  icon: Icon(Icons.music_note_outlined),
+                ),
+                ButtonSegment(
+                  value: 1,
+                  label: Text('Album'),
+                  icon: Icon(Icons.album_outlined),
+                ),
+                ButtonSegment(
+                  value: 2,
+                  label: Text('Artis'),
+                  icon: Icon(Icons.mic_none_rounded),
+                ),
+              ],
+              selected: {_catalogTab},
+              onSelectionChanged: (selection) =>
+                  setState(() => _catalogTab = selection.first),
+              showSelectedIcon: false,
 
-          // PENGATURAN WARNA SAJA
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-              (states) {
-                if (states.contains(WidgetState.selected)) {
-                  return OpenTuneColors.purplePale;
-                }
-                return Colors.white;
-              },
-            ),
-            foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-              (states) {
-                if (states.contains(WidgetState.selected)) {
-                  return OpenTuneColors.purple;
-                }
-                return Colors.grey;
-              },
-            ),
-            side: WidgetStateProperty.all(
-              const BorderSide(color: Color(0xFFE5E5EA)),
+              // PENGATURAN WARNA SAJA
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                  (states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return OpenTuneColors.purplePale;
+                    }
+                    return Colors.white;
+                  },
+                ),
+                foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                  (states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return OpenTuneColors.purple;
+                    }
+                    return Colors.grey;
+                  },
+                ),
+                side: WidgetStateProperty.all(
+                  const BorderSide(color: Color(0xFFE5E5EA)),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-      Expanded(
-        child: IndexedStack(
-          index: _catalogTab,
-          children: [_songPage(), _albumPage(), _artistPage()],
-        ),
-      ),
-    ],
-  );
+          Expanded(
+            child: IndexedStack(
+              index: _catalogTab,
+              children: [_songPage(), _albumPage(), _artistPage()],
+            ),
+          ),
+        ],
+      );
 
   Widget _songPage() {
-    final items = _songs.where((s) => s.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    final items = _songs
+        .where((s) =>
+            s.values.join(' ').toLowerCase().contains(_query.toLowerCase()))
+        .toList();
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
-        _listHeader('${items.length} lagu ditampilkan', 'Tambah lagu', () => _form(
-          title: 'Tambah lagu',
-          labels: const ['Judul lagu', 'Artis', 'Album', 'Genre'],
-          initial: const [],
-          onSave: (v) => _songs.add({'title': v[0], 'artist': v[1], 'album': v[2], 'genre': v[3]}),
-        )),
+        _listHeader(
+            '${items.length} lagu ditampilkan',
+            'Tambah lagu',
+            () => _form(
+                  title: 'Tambah lagu',
+                  labels: const ['Judul lagu', 'Artis', 'Album', 'Genre'],
+                  initial: const [],
+                  onSave: (v) => _songs.add({
+                    'title': v[0],
+                    'artist': v[1],
+                    'album': v[2],
+                    'genre': v[3]
+                  }),
+                )),
         const SizedBox(height: 12),
         for (final song in items)
           _itemCard(
             icon: Icons.music_note_rounded,
             title: song['title']!,
-            subtitle: '${song['artist']} • ${song['album']}\nGenre: ${song['genre']}',
+            subtitle:
+                '${song['artist']} • ${song['album']}\nGenre: ${song['genre']}',
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') {
                   _form(
                     title: 'Edit lagu',
                     labels: const ['Judul lagu', 'Artis', 'Album', 'Genre'],
-                    initial: [song['title']!, song['artist']!, song['album']!, song['genre']!],
-                    onSave: (v) { song['title'] = v[0]; song['artist'] = v[1]; song['album'] = v[2]; song['genre'] = v[3]; },
+                    initial: [
+                      song['title']!,
+                      song['artist']!,
+                      song['album']!,
+                      song['genre']!
+                    ],
+                    onSave: (v) {
+                      song['title'] = v[0];
+                      song['artist'] = v[1];
+                      song['album'] = v[2];
+                      song['genre'] = v[3];
+                    },
                   );
                 }
-                if (value == 'delete') _delete('lagu ${song['title']}', () => _songs.remove(song));
+                if (value == 'delete')
+                  _delete('lagu ${song['title']}', () => _songs.remove(song));
                 if (value == 'detail') {
-                  showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-                    title: Text(song['title']!),
-                    content: Text('Artis: ${song['artist']}\nAlbum: ${song['album']}\nGenre: ${song['genre']}'),
-                    actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tutup'))],
-                  ));
+                  showDialog<void>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                            title: Text(song['title']!),
+                            content: Text(
+                                'Artis: ${song['artist']}\nAlbum: ${song['album']}\nGenre: ${song['genre']}'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Tutup'))
+                            ],
+                          ));
                 }
               },
               itemBuilder: (_) => const [
@@ -666,22 +806,30 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _albumPage() {
-    final items = _albums.where((a) => a.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    final items = _albums
+        .where((a) =>
+            a.values.join(' ').toLowerCase().contains(_query.toLowerCase()))
+        .toList();
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
-        _listHeader('${items.length} album ditampilkan', 'Tambah album', () => _form(
-          title: 'Tambah album',
-          labels: const ['Nama album', 'Artis', 'Tahun rilis'],
-          initial: const [],
-          onSave: (v) => _albums.add({'name': v[0], 'artist': v[1], 'year': v[2]}),
-        )),
+        _listHeader(
+            '${items.length} album ditampilkan',
+            'Tambah album',
+            () => _form(
+                  title: 'Tambah album',
+                  labels: const ['Nama album', 'Artis', 'Tahun rilis'],
+                  initial: const [],
+                  onSave: (v) =>
+                      _albums.add({'name': v[0], 'artist': v[1], 'year': v[2]}),
+                )),
         const SizedBox(height: 12),
         for (final album in items)
           _itemCard(
             icon: Icons.album_outlined,
             title: album['name']!,
-            subtitle: 'Artis: ${album['artist']}\nTahun rilis: ${album['year']}',
+            subtitle:
+                'Artis: ${album['artist']}\nTahun rilis: ${album['year']}',
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') {
@@ -689,10 +837,16 @@ class _AdminScreenState extends State<AdminScreen> {
                     title: 'Edit album',
                     labels: const ['Nama album', 'Artis', 'Tahun rilis'],
                     initial: [album['name']!, album['artist']!, album['year']!],
-                    onSave: (v) { album['name'] = v[0]; album['artist'] = v[1]; album['year'] = v[2]; },
+                    onSave: (v) {
+                      album['name'] = v[0];
+                      album['artist'] = v[1];
+                      album['year'] = v[2];
+                    },
                   );
                 }
-                if (value == 'delete') _delete('album ${album['name']}', () => _albums.remove(album));
+                if (value == 'delete')
+                  _delete(
+                      'album ${album['name']}', () => _albums.remove(album));
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(value: 'edit', child: Text('Edit album')),
@@ -706,16 +860,23 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _artistPage() {
-    final items = _artists.where((a) => a.values.join(' ').toLowerCase().contains(_query.toLowerCase())).toList();
+    final items = _artists
+        .where((a) =>
+            a.values.join(' ').toLowerCase().contains(_query.toLowerCase()))
+        .toList();
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
-        _listHeader('${items.length} artis ditampilkan', 'Tambah artis', () => _form(
-          title: 'Tambah artis',
-          labels: const ['Nama artis', 'Genre', 'Negara'],
-          initial: const [],
-          onSave: (v) => _artists.add({'name': v[0], 'genre': v[1], 'country': v[2]}),
-        )),
+        _listHeader(
+            '${items.length} artis ditampilkan',
+            'Tambah artis',
+            () => _form(
+                  title: 'Tambah artis',
+                  labels: const ['Nama artis', 'Genre', 'Negara'],
+                  initial: const [],
+                  onSave: (v) => _artists
+                      .add({'name': v[0], 'genre': v[1], 'country': v[2]}),
+                )),
         const SizedBox(height: 12),
         for (final artist in items)
           _itemCard(
@@ -728,11 +889,21 @@ class _AdminScreenState extends State<AdminScreen> {
                   _form(
                     title: 'Edit artis',
                     labels: const ['Nama artis', 'Genre', 'Negara'],
-                    initial: [artist['name']!, artist['genre']!, artist['country']!],
-                    onSave: (v) { artist['name'] = v[0]; artist['genre'] = v[1]; artist['country'] = v[2]; },
+                    initial: [
+                      artist['name']!,
+                      artist['genre']!,
+                      artist['country']!
+                    ],
+                    onSave: (v) {
+                      artist['name'] = v[0];
+                      artist['genre'] = v[1];
+                      artist['country'] = v[2];
+                    },
                   );
                 }
-                if (value == 'delete') _delete('artis ${artist['name']}', () => _artists.remove(artist));
+                if (value == 'delete')
+                  _delete(
+                      'artis ${artist['name']}', () => _artists.remove(artist));
               },
               itemBuilder: (_) => const [
                 PopupMenuItem(value: 'edit', child: Text('Edit artis')),
@@ -745,38 +916,91 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  Future<void> _addGenre(List<String> values) async {
+    try {
+      await SupabaseConfig.client.from('genres').insert({
+        'name': values[0],
+        'description': values[1],
+      });
+
+      await _fetchGenres();
+
+      if (!mounted) return;
+      _message('Genre berhasil ditambahkan.');
+    } catch (e) {
+      if (!mounted) return;
+      _message('Gagal menambahkan genre: $e');
+    }
+  }
+
   Widget _genrePage() {
-    final items = _genres.where((g) => '${g['name']} ${g['description']}'.toLowerCase().contains(_query.toLowerCase())).toList();
+    if (_isLoadingGenres) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: OpenTuneColors.purple,
+        ),
+      );
+    }
+
+    final items = _genres.where((g) {
+      final name = '${g['name'] ?? ''}';
+      final description = '${g['description'] ?? ''}';
+
+      return '$name $description'.toLowerCase().contains(_query.toLowerCase());
+    }).toList();
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
       children: [
-        _listHeader('${items.length} genre ditampilkan', 'Tambah genre', () => _form(
-          title: 'Tambah genre',
-          labels: const ['Nama genre', 'Deskripsi'],
-          initial: const [],
-          onSave: (v) => _genres.add({'name': v[0], 'description': v[1]}),
-        )),
+        _listHeader(
+          '${items.length} genre ditampilkan',
+          'Tambah genre',
+          () {
+            _form(
+              title: 'Tambah genre',
+              labels: const ['Nama genre', 'Deskripsi'],
+              initial: const [],
+              onSave: (v) {
+                _addGenre(v);
+              },
+            );
+          },
+        ),
         const SizedBox(height: 12),
+        if (items.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Belum ada data genre.',
+                style: TextStyle(color: OpenTuneColors.muted),
+              ),
+            ),
+          ),
         for (final genre in items)
           _itemCard(
             icon: Icons.category_outlined,
-            title: genre['name']!,
-            subtitle: genre['description']!,
+            title: '${genre['name'] ?? ''}',
+            subtitle: '${genre['description'] ?? ''}',
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') {
-                  _form(
-                    title: 'Edit genre',
-                    labels: const ['Nama genre', 'Deskripsi'],
-                    initial: [genre['name']!, genre['description']!],
-                    onSave: (v) { genre['name'] = v[0]; genre['description'] = v[1]; },
-                  );
+                  // Akan kita hubungkan ke Supabase.
                 }
-                if (value == 'delete') _delete('genre ${genre['name']}', () => _genres.remove(genre));
+
+                if (value == 'delete') {
+                  // Akan kita hubungkan ke Supabase.
+                }
               },
               itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit genre')),
-                PopupMenuItem(value: 'delete', child: Text('Hapus genre')),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Text('Edit genre'),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Hapus genre'),
+                ),
               ],
             ),
             badge: 'Genre',
@@ -1111,21 +1335,19 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _changeAdminPassword() {
-  final formKey = GlobalKey<FormState>();
-  final currentController = TextEditingController();
-  final newController = TextEditingController();
-  final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
 
-  showDialog<void>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Ganti Password'),
-      content: Form(
-        key: formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [              
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ganti Password'),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextFormField(
                 controller: currentController,
                 obscureText: true,
@@ -1156,42 +1378,40 @@ class _AdminScreenState extends State<AdminScreen> {
                     ),
                   ),
                 ),
-                validator: (v) =>
-                    v == null || v.isEmpty
-                        ? 'Password saat ini wajib diisi'
-                        : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Password saat ini wajib diisi'
+                    : null,
               ),
-            ]
+            ]),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: OpenTuneColors.purple,
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx);
+                _message(
+                  'Form valid. Perubahan password belum disimpan ke server.',
+                );
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Batal'),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: OpenTuneColors.purple,
-          ),
-          onPressed: () {
-            if (formKey.currentState!.validate()) {
-              Navigator.pop(ctx);
-              _message(
-                'Form valid. Perubahan password belum disimpan ke server.',
-              );
-            }
-          },
-          child: const Text('Simpan'),
-        ),
-      ],
-    ),
-  ).whenComplete(() {
-    currentController.dispose();
-    newController.dispose();
-    confirmController.dispose();
-  });
-}
+    ).whenComplete(() {
+      currentController.dispose();
+      newController.dispose();
+      confirmController.dispose();
+    });
+  }
 
   void _confirmAdminLogout() {
     showDialog<void>(
@@ -1223,9 +1443,13 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _listHeader(String countLabel, String buttonLabel, VoidCallback onAdd) => Row(
+  Widget _listHeader(
+          String countLabel, String buttonLabel, VoidCallback onAdd) =>
+      Row(
         children: [
-          Expanded(child: Text(countLabel, style: const TextStyle(color: OpenTuneColors.muted))),
+          Expanded(
+              child: Text(countLabel,
+                  style: const TextStyle(color: OpenTuneColors.muted))),
           FilledButton.icon(
             onPressed: onAdd,
             icon: const Icon(Icons.add, size: 18),
@@ -1240,7 +1464,8 @@ class _AdminScreenState extends State<AdminScreen> {
     required String subtitle,
     required Widget trailing,
     required String badge,
-  }) => Container(
+  }) =>
+      Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1265,19 +1490,30 @@ class _AdminScreenState extends State<AdminScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: OpenTuneColors.text, fontWeight: FontWeight.w700)),
+                  Text(title,
+                      style: const TextStyle(
+                          color: OpenTuneColors.text,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: OpenTuneColors.muted, fontSize: 12, height: 1.4)),
+                  Text(subtitle,
+                      style: const TextStyle(
+                          color: OpenTuneColors.muted,
+                          fontSize: 12,
+                          height: 1.4)),
                   const SizedBox(height: 7),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: OpenTuneColors.purplePale,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       badge,
-                      style: const TextStyle(color: OpenTuneColors.purple, fontSize: 10, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                          color: OpenTuneColors.purple,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
